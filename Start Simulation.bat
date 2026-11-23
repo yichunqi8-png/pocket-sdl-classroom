@@ -1,0 +1,17 @@
+@echo off
+chcp 65001 >nul
+set PYTHONUTF8=1
+cd /d "%~dp0"
+where py >nul 2>nul
+if not errorlevel 1 (
+    py -3 launcher\start.py --mode simulated --port 8772 --audience-port 8773 %*
+    goto done
+)
+where python >nul 2>nul
+if not errorlevel 1 (
+    python launcher\start.py --mode simulated --port 8772 --audience-port 8773 %*
+    goto done
+)
+echo 请先安装 Python 3.10+，推荐 3.12：https://www.python.org/downloads/
+:done
+pause
