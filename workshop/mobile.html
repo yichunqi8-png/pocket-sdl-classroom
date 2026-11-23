@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>给 Pico 实验室出个颜色 · SDL Workshop</title>
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --card: #141c2b;
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #eef2f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --human: #34d399;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 18px 16px 40px;
+      font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top, #172540 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 460px; margin: 0 auto; }
+    h1 { font-size: 20px; margin: 0 0 6px; }
+    .sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+    .preview {
+      height: 108px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+      font-weight: 700;
+      transition: background 0.15s ease;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .chip {
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #1c263a;
+      color: var(--text);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .slider-row {
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .slider-row input { width: 100%; height: 8px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 5px; }
+    .field input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0c121e;
+      color: var(--text);
+      font-size: 15px;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .submit-btn:disabled { opacity: 0.5; }
+    .status-box {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+    .pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .pair div {
+      height: 60px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      display: flex;
+      align-items: flex-end;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.85);
+    }
+    .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🎨 给 Pico 实验室出个颜色</h1>
+    <div class="sub">挑选一个你喜欢的颜色提交给现场的 Raspberry Pi Pico H，看看贝叶斯优化（GP-EI）能不能在 16 次实测内复刻出你的光谱！</div>
+
+    <div class="card">
+      <div id="preview" class="preview">
+        <div id="previewLabel" style="font-size:17px;">抹茶拿铁</div>
+        <div id="previewCoord" class="mono" style="font-size:12px;opacity:0.9;">[0.3, 0.7, 0.4]</div>
+      </div>
+
+      <div class="chips">
+        <button class="chip" data-name="抹茶拿铁" data-x="0.3,0.7,0.4">🍵 抹茶拿铁</button>
+        <button class="chip" data-name="落日橘" data-x="0.9,0.4,0.1">🌅 落日橘</button>
+        <button class="chip" data-name="赛博青" data-x="0.1,0.8,0.9">⚡ 赛博青</button>
+        <button class="chip" data-name="薰衣草紫" data-x="0.6,0.3,0.9">💜 薰衣草紫</button>
+        <button class="chip" data-name="樱花粉" data-x="0.9,0.4,0.6">🌸 樱花粉</button>
+        <button class="chip" data-name="柠檬黄" data-x="0.9,0.9,0.2">🍋 柠檬黄</button>
+      </div>
+
+      <div class="slider-row">
+        <span style="color:#f87171">红 R</span>
+        <input id="r" type="range" min="0" max="1" step="0.1" value="0.3" />
+        <span id="rVal" class="mono">0.3</span>
+      </div>
+      <div class="slider-row">
+        <span style="color:#4ade80">绿 G</span>
+        <input id="g" type="range" min="0" max="1" step="0.1" value="0.7" />
+        <span id="gVal" class="mono">0.7</span>
+      </div>
+      <div class="slider-row">
+        <span style="color:#60a5fa">蓝 B</span>
+        <input id="b" type="range" min="0" max="1" step="0.1" value="0.4" />
+        <span id="bVal" class="mono">0.4</span>
+      </div>
+
+      <div class="field">
+        <label for="colorName">给这个颜色起个名字</label>
+        <input id="colorName" type="text" value="抹茶拿铁" maxlength="24" />
+      </div>
+      <div class="field">
+        <label for="author">你的昵称</label>
+        <input id="author" type="text" placeholder="比如：小明" maxlength="20" />
+      </div>
+
+      <button id="btnSubmit" class="submit-btn">🚀 发送给现场 Pico 实验室</button>
+    </div>
+
+    <div id="myTaskCard" class="card" style="display:none;">
+      <div style="font-weight:700;margin-bottom:8px;">📡 我的实验进度</div>
+      <div id="myTaskStatus" class="status-box">正在等待实验室接单...</div>
+      <div id="myTaskPair" class="pair" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script>
+    let myTaskId = null;
+
+    function xToCss(x) {
+      return `rgb(${Math.round(x[0]*255)}, ${Math.round(x[1]*255)}, ${Math.round(x[2]*255)})`;
+    }
+
+    function getX() {
+      return [parseFloat(r.value), parseFloat(g.value), parseFloat(b.value)];
+    }
+
+    function syncPreview() {
+      const x = getX();
+      rVal.textContent = x[0].toFixed(1);
+      gVal.textContent = x[1].toFixed(1);
+      bVal.textContent = x[2].toFixed(1);
+      preview.style.background = xToCss(x);
+      previewLabel.textContent = colorName.value.trim() || "我的颜色";
+      previewCoord.textContent = `[${x.map(v => v.toFixed(1)).join(", ")}]`;
+    }
+
+    [r, g, b, colorName].forEach(el => el.addEventListener("input", syncPreview));
+    document.querySelectorAll(".chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const [rv, gv, bv] = chip.dataset.x.split(",").map(Number);
+        r.value = rv; g.value = gv; b.value = bv;
+        colorName.value = chip.dataset.name;
+        syncPreview();
+      });
+    });
+    syncPreview();
+
+    btnSubmit.addEventListener("click", async () => {
+      btnSubmit.disabled = true;
+      try {
+        const res = await fetch("/api/queue/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            author: author.value.trim() || "现场观众",
+            color_name: colorName.value.trim() || "我的颜色",
+            x: getX()
+          })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error((data.error && data.error.message) || "提交失败");
+        myTaskId = data.task.id;
+        myTaskCard.style.display = "block";
+        myTaskPair.style.display = "none";
+        myTaskStatus.textContent = `✅ 已进入实验室队列（编号 #${myTaskId}），请看大屏，马上轮到 Pico 为你复刻！`;
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btnSubmit.disabled = false;
+      }
+    });
+
+    function updateMyTask(q) {
+      if (!myTaskId || !q) return;
+      if (q.current && q.current.id === myTaskId) {
+        myTaskStatus.innerHTML = `🔬 <strong>Pico 正在实测复刻你的「${q.current.color_name}」</strong><br/>当前进度：${q.current.steps || 0} / ${q.current.budget} 步 · 当前最高相似度：<strong style="color:#34d399">${q.current.best_score || "--"}%</strong>`;
+        return;
+      }
+      const pos = (q.pending || []).findIndex(item => item.id === myTaskId);
+      if (pos >= 0) {
+        myTaskStatus.textContent = `⏳ 排队中：当前排在第 ${pos + 1} 位，请稍候...`;
+        return;
+      }
+      const done = (q.gallery || []).find(item => item.id === myTaskId);
+      if (done) {
+        myTaskStatus.innerHTML = `🎉 <strong>复刻完成！</strong><br/>贝叶斯优化在 ${done.steps} 次真实测量后达到 <strong style="color:#34d399">${done.best_score}%</strong> 相似度（最小谱差 L = ${done.best_loss.toFixed(4)}）！`;
+        myTaskPair.style.display = "grid";
+        myTaskPair.innerHTML = `
+          <div style="background:${xToCss(done.target_x)}">你的目标 [${done.target_x.join(",")}]</div>
+          <div style="background:${xToCss(done.best_x)}">AI 复刻 [${done.best_x.join(",")}]</div>
+        `;
+      }
+    }
+
+    const es = new EventSource("/api/events");
+    es.addEventListener("queue_update", ev => updateMyTask(JSON.parse(ev.data).data));
+    es.addEventListener("queue_step", ev => {
+      const task = JSON.parse(ev.data).data.task;
+      if (task && task.id === myTaskId) {
+        updateMyTask({ current: task, pending: [], gallery: [] });
+      }
+    });
+    es.addEventListener("state", ev => updateMyTask(JSON.parse(ev.data).data.queue));
+  </script>
+</body>
+</html>

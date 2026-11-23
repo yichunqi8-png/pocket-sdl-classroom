@@ -1,0 +1,1473 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pocket SDL 光谱自驱动实验室 · Workshop 实时交互台</title>
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --panel: #131a26;
+      --panel-2: #192233;
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #eef2f9;
+      --muted: #93a1b8;
+      --accent: #38bdf8;
+      --bo: #38bdf8;
+      --random: #fb923c;
+      --human: #34d399;
+      --danger: #f87171;
+      --warn: #fbbf24;
+      --font: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+      --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: radial-gradient(circle at top right, #142038 0%, var(--bg) 52%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 22px;
+      background: rgba(13, 18, 28, 0.92);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: conic-gradient(#7c3aed, #2563eb, #10b981, #facc15, #ef4444, #7c3aed);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.65);
+    }
+    .brand h1 {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pill.physical { border-color: rgba(52, 211, 153, 0.45); background: rgba(16, 185, 129, 0.16); color: #6ee7b7; }
+    .pill.simulated { border-color: rgba(251, 191, 36, 0.45); background: rgba(245, 158, 11, 0.16); color: #fde68a; }
+    .pill.ok { border-color: rgba(52, 211, 153, 0.4); color: #6ee7b7; }
+    .pill.warn { border-color: rgba(251, 191, 36, 0.4); color: #fde68a; }
+    .pill.busy { border-color: rgba(56, 189, 248, 0.5); background: rgba(56, 189, 248, 0.15); color: #7dd3fc; }
+
+    button {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    button:hover:not(:disabled) {
+      background: #233047;
+      border-color: rgba(255, 255, 255, 0.24);
+    }
+    button:active:not(:disabled) { transform: scale(0.98); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.primary { background: linear-gradient(135deg, #0284c7, #2563eb); border-color: rgba(125, 211, 252, 0.4); }
+    button.primary:hover:not(:disabled) { background: linear-gradient(135deg, #0ea5e9, #3b82f6); }
+    button.emerald { background: linear-gradient(135deg, #059669, #10b981); border-color: rgba(110, 231, 183, 0.4); color: #041911; }
+    button.emerald:hover:not(:disabled) { background: linear-gradient(135deg, #10b981, #34d399); }
+    button.orange { background: linear-gradient(135deg, #ea580c, #f97316); border-color: rgba(253, 186, 116, 0.4); }
+    button.danger { background: rgba(239, 68, 68, 0.2); border-color: rgba(248, 113, 113, 0.5); color: #fecaca; }
+    button.danger:hover:not(:disabled) { background: rgba(239, 68, 68, 0.35); }
+    button.active-toggle { background: rgba(16, 185, 129, 0.24); border-color: rgba(52, 211, 153, 0.6); color: #6ee7b7; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 12px 22px 0;
+      border-bottom: 1px solid var(--border);
+      background: rgba(13, 18, 28, 0.5);
+    }
+    .tab {
+      padding: 10px 18px;
+      border-radius: 10px 10px 0 0;
+      border: 1px solid transparent;
+      border-bottom: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .tab.active {
+      background: var(--panel);
+      color: var(--text);
+      border-color: var(--border);
+      position: relative;
+    }
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: -1px;
+      height: 2px;
+      background: var(--panel);
+    }
+
+    main {
+      padding: 18px 22px 32px;
+      max-width: 1520px;
+      margin: 0 auto;
+    }
+    .banner-error {
+      display: none;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(248, 113, 113, 0.55);
+      background: rgba(127, 29, 29, 0.35);
+      color: #fecaca;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .banner-error.show { display: flex; }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .grid-arena {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 1040px) {
+      .grid-2, .grid-arena { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+    }
+    .card + .card { margin-top: 16px; }
+    .card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 0 14px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .muted { color: var(--muted); font-size: 13px; }
+    .mono { font-family: var(--mono); }
+
+    /* LED Orb */
+    .orb-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+    .led-orb {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      background: #111622;
+      box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.55);
+      flex-shrink: 0;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+    .rgb-readout {
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    /* Sliders */
+    .slider-group { display: flex; flex-direction: column; gap: 12px; }
+    .slider-row {
+      display: grid;
+      grid-template-columns: 52px 1fr 56px;
+      align-items: center;
+      gap: 10px;
+    }
+    .slider-row label { font-weight: 700; font-size: 13px; }
+    .slider-row input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+      height: 8px;
+    }
+    .slider-row.r input { accent-color: #ef4444; }
+    .slider-row.g input { accent-color: #22c55e; }
+    .slider-row.b input { accent-color: #3b82f6; }
+    .slider-val {
+      font-family: var(--mono);
+      font-size: 13px;
+      text-align: right;
+      color: var(--text);
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .preset-btn {
+      padding: 7px 6px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .tip-box {
+      margin-top: 14px;
+      padding: 11px 13px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px dashed rgba(56, 189, 248, 0.35);
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: #bae6fd;
+    }
+
+    /* Spectrum SVG */
+    .chart-box {
+      width: 100%;
+      background: #0d131e;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .chart-box svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .metric {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .metric .k { font-size: 11px; color: var(--muted); }
+    .metric .v { font-family: var(--mono); font-size: 17px; font-weight: 700; margin-top: 3px; }
+
+    /* Arena Swatches */
+    .swatch-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 900px) {
+      .swatch-strip, .metrics-strip { grid-template-columns: repeat(2, 1fr); }
+    }
+    .swatch-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .swatch-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: #1d2536;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .swatch-meta .label { font-size: 12px; color: var(--muted); }
+    .swatch-meta .score { font-family: var(--mono); font-size: 18px; font-weight: 800; }
+    .swatch-meta .sub { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+
+    .inline-form {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    input[type="text"], input[type="number"], select {
+      background: #0d131e;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 7px 10px;
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    th, td {
+      text-align: left;
+      padding: 7px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    th { color: var(--muted); font-weight: 600; font-size: 11.5px; }
+
+    .brain-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 10px;
+      background: #0d131e;
+      border: 1px solid var(--border);
+      margin-top: 6px;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    /* Queue & Gallery */
+    .qr-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #ffffff;
+      padding: 14px;
+      border-radius: 14px;
+      width: 210px;
+      margin: 0 auto 12px;
+    }
+    .qr-wrap img { width: 180px; height: 180px; display: block; }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+    }
+    .gallery-card {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .pair-swatch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin: 10px 0;
+    }
+    .pair-swatch div {
+      height: 52px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: flex-end;
+      padding: 4px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    }
+    .queue-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      background: #0d131e;
+      border: 1px solid var(--border);
+      margin-top: 8px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #0d131e;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #34d399);
+      transition: width 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <div>
+        <h1>Pocket SDL 光谱自驱动实验室 · 实时交互台</h1>
+      </div>
+    </div>
+    <div class="badges">
+      <span id="badgeMode" class="pill">连接中...</span>
+      <span id="badgeCal" class="pill warn">未校准</span>
+      <span id="badgeJob" class="pill" style="display:none"></span>
+      <button id="btnCalibrate" class="primary">快速校准</button>
+      <button id="btnAudio">🔇 音效关</button>
+      <button id="btnReconnect">重连</button>
+      <button id="btnLedOff" class="danger">紧急关灯</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="live">1. 🌈 实时分光仪 (破冰探索)</button>
+    <button class="tab" data-tab="arena">2. ⚔️ 人机调色擂台 (Human vs BO)</button>
+    <button class="tab" data-tab="queue">3. 📱 观众扫码出题 (局域网实验队列)</button>
+  </nav>
+
+  <main>
+    <div id="errorBanner" class="banner-error">
+      <div>
+        <strong id="errorCode">ERROR</strong>：<span id="errorMsg"></span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button id="btnErrReconnect">重新握手</button>
+        <button id="btnErrClose">关闭提示</button>
+      </div>
+    </div>
+
+    <!-- TAB 1: LIVE SPECTROMETER -->
+    <section id="view-live" class="view active">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>RGB 光源控制</span>
+            <span class="muted mono" id="liveSourceTag">--</span>
+          </div>
+          <div class="orb-row">
+            <div id="liveOrb" class="led-orb"></div>
+            <div class="rgb-readout">
+              <div>网格输入 x：<strong id="liveXText">[0.0, 0.0, 0.0]</strong></div>
+              <div>LED 亮度 (0-80)：<strong id="livePwmText">[0, 0, 0]</strong></div>
+              <div>状态：<strong id="liveStreamStatus" style="color:var(--muted)">待机</strong></div>
+            </div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-row r">
+              <label for="liveR">红 R</label>
+              <input id="liveR" type="range" min="0" max="1" step="0.1" value="0" />
+              <span class="slider-val" id="liveRVal">0.0</span>
+            </div>
+            <div class="slider-row g">
+              <label for="liveG">绿 G</label>
+              <input id="liveG" type="range" min="0" max="1" step="0.1" value="0" />
+              <span class="slider-val" id="liveGVal">0.0</span>
+            </div>
+            <div class="slider-row b">
+              <label for="liveB">蓝 B</label>
+              <input id="liveB" type="range" min="0" max="1" step="0.1" value="0" />
+              <span class="slider-val" id="liveBVal">0.0</span>
+            </div>
+          </div>
+
+          <div class="preset-grid">
+            <button class="preset-btn" data-preset="0,0,0"><span class="dot" style="background:#111"></span>关灯/环境</button>
+            <button class="preset-btn" data-preset="1,0,0"><span class="dot" style="background:#ef4444"></span>纯红</button>
+            <button class="preset-btn" data-preset="0,1,0"><span class="dot" style="background:#22c55e"></span>纯绿</button>
+            <button class="preset-btn" data-preset="0,0,1"><span class="dot" style="background:#3b82f6"></span>纯蓝</button>
+            <button class="preset-btn" data-preset="1,0.8,0"><span class="dot" style="background:#facc15"></span>暖黄</button>
+            <button class="preset-btn" data-preset="0,0.9,0.9"><span class="dot" style="background:#06b6d4"></span>赛博青</button>
+            <button class="preset-btn" data-preset="0.9,0.2,0.8"><span class="dot" style="background:#d946ef"></span>品红</button>
+            <button class="preset-btn" data-preset="1,1,1"><span class="dot" style="background:#ffffff"></span>白光</button>
+          </div>
+
+          <div class="action-row">
+            <button id="btnLiveStream" class="emerald" style="flex:1">▶ 开启实时连续采样</button>
+            <button id="btnLiveOnce" class="primary">单次实测</button>
+          </div>
+          <div class="action-row">
+            <button id="btnSnapSave" style="flex:1">📌 锁定当前光谱为对比虚线</button>
+            <button id="btnSnapClear">清除对比</button>
+          </div>
+
+          <div class="tip-box">
+            <strong>现场破冰玩法：</strong>先点 <b>关灯/环境</b> 并开启连续采样，打开暗盒盖，把<b>手机白色屏幕、荧光笔、彩色饮料瓶</b>凑近 AS7341——看看“手机白光”和“台灯/阳光”在 8 通道光谱上有什么不同！
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>AS7341 8 通道实时光谱 (415nm – 680nm)</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button id="btnScaleToggle" style="padding:5px 10px;font-size:12px;">显示：原始计数 (Raw)</button>
+            </div>
+          </div>
+          <div class="chart-box">
+            <svg id="liveSpectrumSvg" viewBox="0 0 760 320"></svg>
+          </div>
+          <div class="metrics-strip">
+            <div class="metric">
+              <div class="k">主峰波段</div>
+              <div class="v" id="mPeak">-- nm</div>
+            </div>
+            <div class="metric">
+              <div class="k">最高通道计数</div>
+              <div class="v" id="mMaxRaw">--</div>
+            </div>
+            <div class="metric">
+              <div class="k">饱和警戒线 (&lt;60000)</div>
+              <div class="v" id="mSat">-- %</div>
+            </div>
+            <div class="metric">
+              <div class="k">单次硬件耗时</div>
+              <div class="v" id="mLatency">-- ms</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: ARENA -->
+    <section id="view-arena" class="view">
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <strong>① 设定擂台题目：</strong>
+            <button id="btnMysteryTarget" class="primary">🎲 随机神秘盲盒目标</button>
+            <button id="btnAmbientTarget">🔦 抓取环境/实物光谱为目标</button>
+            <span class="muted" style="margin-left:4px;">或自选 RGB:</span>
+            <input id="customR" type="number" min="0" max="1" step="0.1" value="0.3" style="width:62px" title="R" />
+            <input id="customG" type="number" min="0" max="1" step="0.1" value="0.6" style="width:62px" title="G" />
+            <input id="customB" type="number" min="0" max="1" step="0.1" value="0.4" style="width:62px" title="B" />
+            <button id="btnCustomTarget">设为隐藏目标</button>
+          </div>
+          <button id="btnReveal" class="orange">👁️ 揭晓谜底 RGB</button>
+        </div>
+      </div>
+
+      <div class="swatch-strip">
+        <div class="swatch-card">
+          <div id="swTarget" class="swatch-box">?</div>
+          <div class="swatch-meta">
+            <div class="label">目标光谱 (Target)</div>
+            <div id="swTargetTitle" class="score">未出题</div>
+            <div id="swTargetSub" class="sub">先点击上方出题</div>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div id="swHuman" class="swatch-box">--</div>
+          <div class="swatch-meta">
+            <div class="label" style="color:var(--human)">人类选手最佳 (Human)</div>
+            <div id="swHumanScore" class="score">--</div>
+            <div id="swHumanSub" class="sub">尚未挑战</div>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div id="swRandom" class="swatch-box">--</div>
+          <div class="swatch-meta">
+            <div class="label" style="color:var(--random)">随机搜索最佳 (Random)</div>
+            <div id="swRandomScore" class="score">--</div>
+            <div id="swRandomSub" class="sub">尚未运行</div>
+          </div>
+        </div>
+        <div class="swatch-card">
+          <div id="swBo" class="swatch-box">--</div>
+          <div class="swatch-meta">
+            <div class="label" style="color:var(--bo)">贝叶斯优化最佳 (GP-EI)</div>
+            <div id="swBoScore" class="score">--</div>
+            <div id="swBoSub" class="sub">尚未运行</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-arena">
+        <div>
+          <div class="card">
+            <div class="card-title">
+              <span>② 人类选手手动调色</span>
+              <span class="mono muted" id="humanBudgetTag">0 / 10</span>
+            </div>
+            <div class="inline-form">
+              <input id="humanName" type="text" value="挑战者1号" placeholder="你的昵称" style="flex:1;min-width:110px" />
+              <select id="humanBudget">
+                <option value="8">8 次机会</option>
+                <option value="10" selected>10 次机会</option>
+                <option value="12">12 次机会</option>
+              </select>
+              <button id="btnHumanStart">新选手上场</button>
+            </div>
+
+            <div class="slider-group" style="margin-top:10px;">
+              <div class="slider-row r">
+                <label for="arenaR">红 R</label>
+                <input id="arenaR" type="range" min="0" max="1" step="0.1" value="0.5" />
+                <span class="slider-val" id="arenaRVal">0.5</span>
+              </div>
+              <div class="slider-row g">
+                <label for="arenaG">绿 G</label>
+                <input id="arenaG" type="range" min="0" max="1" step="0.1" value="0.5" />
+                <span class="slider-val" id="arenaGVal">0.5</span>
+              </div>
+              <div class="slider-row b">
+                <label for="arenaB">蓝 B</label>
+                <input id="arenaB" type="range" min="0" max="1" step="0.1" value="0.5" />
+                <span class="slider-val" id="arenaBVal">0.5</span>
+              </div>
+            </div>
+
+            <div class="action-row" style="align-items:center;">
+              <div id="arenaPreviewBox" class="swatch-box" style="width:42px;height:42px;font-size:12px;"></div>
+              <button id="btnHumanMeasure" class="emerald" style="flex:1;padding:11px 16px;font-size:14px;">🧪 点亮真灯并实测一次</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span>③ 召唤 AI 现场闭环 PK</span>
+              <select id="aiBudget">
+                <option value="12">12 步 (快节奏)</option>
+                <option value="16">16 步 (~11s)</option>
+                <option value="24" selected>24 步 (完整对照 ~16s)</option>
+              </select>
+            </div>
+            <div class="action-row" style="margin-top:4px;">
+              <button id="btnRunRandom" class="orange" style="flex:1">🎲 启动 Random</button>
+              <button id="btnRunBo" class="primary" style="flex:1">🧠 启动 BO (GP-EI)</button>
+              <button id="btnStopAi" class="danger">⏹ 停止</button>
+            </div>
+
+            <div style="margin-top:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong style="font-size:13px;">BO 大脑透视（GP-EI 决策依据）</strong>
+                <span id="boBrainPhase" class="muted" style="font-size:12px;">待机</span>
+              </div>
+              <div id="boBrainList" style="margin-top:6px;">
+                <div class="muted" style="font-size:12px;">启动 BO 后，这里会实时展示高斯过程预测误差 μ、不确定度 σ 与期望改进 EI 排名前 3 的候选方案。</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span>🏆 本轮人类排行榜</span></div>
+            <table>
+              <thead>
+                <tr><th>#</th><th>选手</th><th>最高相似度</th><th>最小 L(x)</th><th>步数</th></tr>
+              </thead>
+              <tbody id="leaderboardBody">
+                <tr><td colspan="5" class="muted">暂无挑战记录</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-title">
+              <span>实时光谱拟合（彩柱 = 当前实测，白色虚线 = 目标轮廓 z*）</span>
+              <span id="arenaLatestTag" class="mono muted">--</span>
+            </div>
+            <div class="chart-box">
+              <svg id="arenaSpectrumSvg" viewBox="0 0 760 270"></svg>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span>同屏实时收敛曲线（谱差 L(x) 越低越精准）</span>
+              <span class="muted" style="font-size:12px;">
+                <span style="color:var(--human)">● 人类</span> &nbsp;
+                <span style="color:var(--random)">● Random</span> &nbsp;
+                <span style="color:var(--bo)">● BO (GP-EI)</span>
+              </span>
+            </div>
+            <div class="chart-box">
+              <svg id="convergenceSvg" viewBox="0 0 760 260"></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: AUDIENCE QR QUEUE -->
+    <section id="view-queue" class="view">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><span>📱 手机扫码给实验室出题</span></div>
+          <div class="qr-wrap">
+            <img id="qrImage" src="/api/qr.svg" alt="扫码打开观众页面" />
+          </div>
+          <div style="text-align:center;">
+            <div id="mobileUrlText" class="mono" style="font-size:13px;word-break:break-all;color:#7dd3fc;"></div>
+            <div class="muted" style="font-size:12px;margin-top:6px;">提示：若多人用手机连同一 Wi-Fi 扫码，请用 <code>--host 0.0.0.0</code> 启动服务。</div>
+          </div>
+
+          <div class="action-row" style="margin-top:16px;">
+            <button id="btnQueueRunNext" class="primary" style="flex:1">▶ 运行队列下一题 (BO 16步)</button>
+            <button id="btnQueueAuto">自动接单：关</button>
+          </div>
+
+          <div id="queueCurrentBox" style="margin-top:14px;display:none;" class="tip-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong id="queueCurrentTitle">正在复刻...</strong>
+              <span id="queueCurrentStep" class="mono">0/16</span>
+            </div>
+            <div class="progress-bar"><div id="queueCurrentFill" class="progress-fill" style="width:0%"></div></div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <div class="card-title" style="margin-bottom:8px;">
+              <span>等待队列</span>
+              <span id="queueCount" class="mono muted">0</span>
+            </div>
+            <div id="queuePendingList"><div class="muted">还没有观众提交颜色，扫码或访问 /mobile 即可投稿！</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>🎨 现场光谱复刻成果墙</span>
+            <span id="galleryCount" class="mono muted">0 件作品</span>
+          </div>
+          <div id="galleryGrid" class="gallery-grid">
+            <div class="muted">等待第一件观众配色由 Pico 实测复刻完成后展示在这里。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const CHANNELS = [
+      { nm: 415, color: "#7c3aed", label: "415" },
+      { nm: 445, color: "#3b82f6", label: "445" },
+      { nm: 480, color: "#06b6d4", label: "480" },
+      { nm: 515, color: "#10b981", label: "515" },
+      { nm: 555, color: "#84cc16", label: "555" },
+      { nm: 590, color: "#facc15", label: "590" },
+      { nm: 630, color: "#f97316", label: "630" },
+      { nm: 680, color: "#ef4444", label: "680" }
+    ];
+
+    let appState = null;
+    let showNormalized = false;
+    let liveSnapshot = null;
+    let audioEnabled = false;
+    let audioCtx = null;
+    let sliderTimer = null;
+
+    function xToCss(x) {
+      if (!x || x.length !== 3) return "#1e293b";
+      const r = Math.round(x[0] * 255);
+      const g = Math.round(x[1] * 255);
+      const b = Math.round(x[2] * 255);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function fmtX(x) {
+      return x ? `[${x.map(v => Number(v).toFixed(1)).join(", ")}]` : "--";
+    }
+
+    function playChime(score) {
+      if (!audioEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const freq = 260 + Math.max(0, Math.min(100, score)) * 5.2;
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.16);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.17);
+      } catch (_) {}
+    }
+
+    async function api(path, body = null) {
+      const opts = body === null
+        ? { method: "GET" }
+        : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+      const res = await fetch(path, opts);
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        const err = data.error || { code: "HTTP_" + res.status, message: "请求失败" };
+        showError(err.code, err.message);
+        throw new Error(err.message);
+      }
+      return data;
+    }
+
+    function showError(code, msg) {
+      document.getElementById("errorCode").textContent = code || "ERROR";
+      document.getElementById("errorMsg").textContent = msg || "";
+      document.getElementById("errorBanner").classList.add("show");
+    }
+
+    function hideError() {
+      document.getElementById("errorBanner").classList.remove("show");
+    }
+
+    // ---------- SVG Renderers ----------
+
+    function renderSpectrumBars(svgId, values, options = {}) {
+      const svg = document.getElementById(svgId);
+      const W = 760, H = options.height || 300;
+      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      const padL = 56, padR = 24, padT = 26, padB = 46;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const overlay = options.overlay || null;
+      const isNorm = !!options.isNorm;
+      const satLine = options.satLine || null;
+
+      let maxVal = isNorm ? 0.6 : 2000;
+      if (values) values.forEach(v => { if (v > maxVal) maxVal = v; });
+      if (overlay) overlay.forEach(v => { if (v > maxVal) maxVal = v; });
+      maxVal = maxVal * 1.15;
+
+      const yOf = (v) => padT + plotH - Math.max(0, Math.min(1, v / maxVal)) * plotH;
+      const step = plotW / 8;
+      const barW = step * 0.58;
+
+      let parts = [];
+      // Horizontal grid lines
+      for (let i = 0; i <= 4; i++) {
+        const val = (maxVal * i) / 4;
+        const y = yOf(val);
+        const txt = isNorm ? val.toFixed(2) : Math.round(val).toString();
+        parts.push(`<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.08)" />`);
+        parts.push(`<text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="#8998b0" font-size="11" font-family="ui-monospace,monospace">${txt}</text>`);
+      }
+
+      if (!isNorm && satLine && satLine <= maxVal * 1.1) {
+        const sy = yOf(satLine);
+        parts.push(`<line x1="${padL}" y1="${sy}" x2="${W - padR}" y2="${sy}" stroke="#f87171" stroke-dasharray="6 4" stroke-width="1.5" />`);
+        parts.push(`<text x="${W - padR}" y="${sy - 6}" text-anchor="end" fill="#f87171" font-size="11">饱和防线 60000</text>`);
+      }
+
+      // Bars
+      CHANNELS.forEach((ch, idx) => {
+        const cx = padL + step * idx + step / 2;
+        const x = cx - barW / 2;
+        const val = values ? values[idx] : 0;
+        const y = yOf(val);
+        const h = Math.max(2, padT + plotH - y);
+        parts.push(`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="6" fill="${ch.color}" fill-opacity="0.88" />`);
+        const lbl = isNorm ? val.toFixed(2) : Math.round(val).toString();
+        parts.push(`<text x="${cx.toFixed(1)}" y="${Math.max(14, y - 6).toFixed(1)}" text-anchor="middle" fill="#dce5f5" font-size="11" font-family="ui-monospace,monospace">${values ? lbl : "-"}</text>`);
+        parts.push(`<text x="${cx.toFixed(1)}" y="${H - 22}" text-anchor="middle" fill="#cbd5e1" font-size="12" font-weight="700">${ch.label}nm</text>`);
+        parts.push(`<text x="${cx.toFixed(1)}" y="${H - 7}" text-anchor="middle" fill="#64748b" font-size="10">F${idx + 1}</text>`);
+      });
+
+      // Overlay polyline (Target or Snapshot)
+      if (overlay && overlay.length === 8) {
+        const pts = overlay.map((v, idx) => {
+          const cx = padL + step * idx + step / 2;
+          return `${cx.toFixed(1)},${yOf(v).toFixed(1)}`;
+        });
+        parts.push(`<polyline points="${pts.join(" ")}" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-dasharray="7 4" />`);
+        overlay.forEach((v, idx) => {
+          const cx = padL + step * idx + step / 2;
+          parts.push(`<circle cx="${cx.toFixed(1)}" cy="${yOf(v).toFixed(1)}" r="4.5" fill="#0b0f17" stroke="#ffffff" stroke-width="2.2" />`);
+        });
+      }
+
+      svg.innerHTML = parts.join("");
+    }
+
+    function renderConvergence(arena) {
+      const svg = document.getElementById("convergenceSvg");
+      const W = 760, H = 260;
+      const padL = 56, padR = 24, padT = 20, padB = 38;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+
+      const series = [];
+      if (arena && arena.human && arena.human.rows && arena.human.rows.length) {
+        series.push({ name: "Human", color: "#34d399", rows: arena.human.rows });
+      }
+      if (arena && arena.ai_runs && arena.ai_runs.random && arena.ai_runs.random.rows.length) {
+        series.push({ name: "Random", color: "#fb923c", rows: arena.ai_runs.random.rows });
+      }
+      if (arena && arena.ai_runs && arena.ai_runs.bo && arena.ai_runs.bo.rows.length) {
+        series.push({ name: "BO", color: "#38bdf8", rows: arena.ai_runs.bo.rows });
+      }
+
+      let maxIter = 10;
+      let maxLoss = 0.5;
+      series.forEach(s => {
+        if (s.rows.length > maxIter) maxIter = s.rows.length;
+        s.rows.forEach(r => { if (r.best_so_far > maxLoss) maxLoss = r.best_so_far; });
+      });
+      maxLoss = maxLoss * 1.15;
+
+      const xOf = (i) => padL + ((i - 1) / Math.max(1, maxIter - 1)) * plotW;
+      const yOf = (l) => padT + plotH - Math.min(1, l / maxLoss) * plotH;
+
+      let parts = [];
+      for (let i = 0; i <= 4; i++) {
+        const val = (maxLoss * i) / 4;
+        const y = yOf(val);
+        parts.push(`<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.08)" />`);
+        parts.push(`<text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="#8998b0" font-size="11" font-family="ui-monospace,monospace">${val.toFixed(2)}</text>`);
+      }
+
+      // Highlight first 4 shared init points
+      if (maxIter >= 4) {
+        const x4 = xOf(4);
+        parts.push(`<rect x="${padL}" y="${padT}" width="${(x4 - padL).toFixed(1)}" height="${plotH}" fill="rgba(255,255,255,0.03)" />`);
+        parts.push(`<line x1="${x4.toFixed(1)}" y1="${padT}" x2="${x4.toFixed(1)}" y2="${padT + plotH}" stroke="rgba(255,255,255,0.16)" stroke-dasharray="4 4" />`);
+        parts.push(`<text x="${((padL + x4) / 2).toFixed(1)}" y="${padT + 14}" text-anchor="middle" fill="#64748b" font-size="10.5">前4次共同初始点</text>`);
+      }
+
+      const tickStep = maxIter <= 12 ? 1 : 2;
+      for (let i = 1; i <= maxIter; i += tickStep) {
+        const x = xOf(i);
+        parts.push(`<text x="${x.toFixed(1)}" y="${H - 14}" text-anchor="middle" fill="#8998b0" font-size="11" font-family="ui-monospace,monospace">${i}</text>`);
+      }
+      parts.push(`<text x="${W / 2}" y="${H - 2}" text-anchor="middle" fill="#64748b" font-size="11">实验次数 (Iteration)</text>`);
+
+      if (!series.length) {
+        parts.push(`<text x="${W / 2}" y="${H / 2}" text-anchor="middle" fill="#64748b" font-size="13">设定目标并开始人类挑战或 AI 寻优后，收敛曲线会实时绘制在这里</text>`);
+      } else {
+        series.forEach(s => {
+          const pts = s.rows.map(r => `${xOf(r.iteration).toFixed(1)},${yOf(r.best_so_far).toFixed(1)}`);
+          parts.push(`<polyline points="${pts.join(" ")}" fill="none" stroke="${s.color}" stroke-width="2.8" />`);
+          s.rows.forEach(r => {
+            parts.push(`<circle cx="${xOf(r.iteration).toFixed(1)}" cy="${yOf(r.best_so_far).toFixed(1)}" r="3.6" fill="${s.color}" />`);
+          });
+        });
+      }
+      svg.innerHTML = parts.join("");
+    }
+
+    // ---------- UI Sync ----------
+
+    function syncLiveControls(x) {
+      const [r, g, b] = x;
+      document.getElementById("liveR").value = r;
+      document.getElementById("liveG").value = g;
+      document.getElementById("liveB").value = b;
+      document.getElementById("liveRVal").textContent = r.toFixed(1);
+      document.getElementById("liveGVal").textContent = g.toFixed(1);
+      document.getElementById("liveBVal").textContent = b.toFixed(1);
+      document.getElementById("liveXText").textContent = fmtX(x);
+      document.getElementById("livePwmText").textContent = `[${x.map(v => Math.round(v * 80)).join(", ")}]`;
+      const orb = document.getElementById("liveOrb");
+      const css = xToCss(x);
+      const bright = r + g + b;
+      orb.style.background = bright > 0 ? css : "#111622";
+      orb.style.boxShadow = bright > 0
+        ? `0 0 28px ${css}, inset 0 0 12px rgba(255,255,255,0.35)`
+        : "inset 0 0 18px rgba(0,0,0,0.55)";
+    }
+
+    function renderSample(sample) {
+      if (!sample) {
+        renderSpectrumBars("liveSpectrumSvg", null, { height: 320, isNorm: false });
+        return;
+      }
+      const canNorm = showNormalized && sample.normalized;
+      const values = canNorm ? sample.normalized : sample.raw;
+      const overlay = liveSnapshot ? (canNorm ? liveSnapshot.normalized : liveSnapshot.raw) : null;
+      renderSpectrumBars("liveSpectrumSvg", values, {
+        height: 320,
+        isNorm: canNorm,
+        overlay,
+        satLine: appState ? appState.saturation_threshold : 60000
+      });
+      document.getElementById("liveSourceTag").textContent = `${sample.source} · ${sample.ts.slice(11, 19)}`;
+      document.getElementById("mPeak").textContent = `${sample.peak_nm} nm`;
+      document.getElementById("mMaxRaw").textContent = sample.max_raw.toLocaleString();
+      const satPct = (sample.saturation_ratio * 100).toFixed(1);
+      const satEl = document.getElementById("mSat");
+      satEl.textContent = `${satPct} %`;
+      satEl.style.color = sample.saturation_ratio > 0.8 ? "#f87171" : "#6ee7b7";
+      document.getElementById("mLatency").textContent = `${sample.duration_ms} ms`;
+    }
+
+    function renderArena(arena) {
+      if (!arena) return;
+      const swTarget = document.getElementById("swTarget");
+      if (!arena.round_id) {
+        swTarget.style.background = "#1d2536";
+        swTarget.textContent = "?";
+        document.getElementById("swTargetTitle").textContent = "未出题";
+        document.getElementById("swTargetSub").textContent = "先点击上方出题";
+      } else if (arena.revealed && arena.target_x) {
+        swTarget.style.background = xToCss(arena.target_x);
+        swTarget.textContent = "";
+        document.getElementById("swTargetTitle").textContent = fmtX(arena.target_x);
+        document.getElementById("swTargetSub").textContent = "谜底已揭晓";
+      } else if (arena.target_kind === "ambient") {
+        swTarget.style.background = "linear-gradient(135deg,#38bdf8,#a855f7)";
+        swTarget.textContent = "☀";
+        document.getElementById("swTargetTitle").textContent = "真实环境/实物光";
+        document.getElementById("swTargetSub").textContent = "直接采自 AS7341";
+      } else {
+        swTarget.style.background = "#1d2536";
+        swTarget.textContent = "?";
+        document.getElementById("swTargetTitle").textContent = "神秘目标已锁定";
+        document.getElementById("swTargetSub").textContent = `轮次 #${arena.round_id} · 仅公开光谱轮廓`;
+      }
+
+      // Human swatch
+      const h = arena.human;
+      if (h && h.best_x) {
+        document.getElementById("swHuman").style.background = xToCss(h.best_x);
+        document.getElementById("swHuman").textContent = "";
+        document.getElementById("swHumanScore").textContent = `${h.best_score}%`;
+        document.getElementById("swHumanSub").textContent = `${h.player} · L=${h.best_loss.toFixed(4)} · ${fmtX(h.best_x)}`;
+        document.getElementById("humanBudgetTag").textContent = `${h.rows.length} / ${h.budget}`;
+      } else {
+        document.getElementById("swHuman").style.background = "#1d2536";
+        document.getElementById("swHuman").textContent = "--";
+        document.getElementById("swHumanScore").textContent = "--";
+        document.getElementById("swHumanSub").textContent = h ? `${h.player} 准备就绪` : "尚未挑战";
+        document.getElementById("humanBudgetTag").textContent = h ? `0 / ${h.budget}` : `0 / ${appState?.course?.budget || 10}`;
+      }
+
+      // Random & BO swatches
+      for (const [key, boxId, scoreId, subId] of [
+        ["random", "swRandom", "swRandomScore", "swRandomSub"],
+        ["bo", "swBo", "swBoScore", "swBoSub"]
+      ]) {
+        const run = arena.ai_runs && arena.ai_runs[key];
+        if (run && run.best_x) {
+          document.getElementById(boxId).style.background = xToCss(run.best_x);
+          document.getElementById(boxId).textContent = "";
+          document.getElementById(scoreId).textContent = `${run.best_score}%`;
+          document.getElementById(subId).textContent = `${run.rows.length}/${run.budget}步 · L=${run.best_loss.toFixed(4)} · ${fmtX(run.best_x)}`;
+        } else {
+          document.getElementById(boxId).style.background = "#1d2536";
+          document.getElementById(boxId).textContent = "--";
+          document.getElementById(scoreId).textContent = "--";
+          document.getElementById(subId).textContent = "尚未运行";
+        }
+      }
+
+      // BO Brain panel
+      const boRun = arena.ai_runs && arena.ai_runs.bo;
+      if (boRun && boRun.brain) {
+        document.getElementById("boBrainPhase").textContent = boRun.brain.phase;
+        const list = document.getElementById("boBrainList");
+        if (boRun.brain.top3 && boRun.brain.top3.length) {
+          list.innerHTML = boRun.brain.top3.map((c, idx) => `
+            <div class="brain-item">
+              <span style="display:flex;align-items:center;gap:6px;">
+                <span class="dot" style="background:${xToCss(c.x)}"></span>
+                #${idx + 1} ${fmtX(c.x)}
+              </span>
+              <span>μ=${c.pred_loss} ± ${c.pred_sd} · EI=${c.ei}</span>
+            </div>
+          `).join("");
+        } else {
+          list.innerHTML = `<div class="muted" style="font-size:12px;">当前处于 ${boRun.brain.phase}，收集 4 个初始点后启动 GP-EI 模型。</div>`;
+        }
+      }
+
+      // Leaderboard
+      const lb = document.getElementById("leaderboardBody");
+      if (!arena.leaderboard || !arena.leaderboard.length) {
+        lb.innerHTML = `<tr><td colspan="5" class="muted">暂无挑战记录</td></tr>`;
+      } else {
+        lb.innerHTML = arena.leaderboard.map((item, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><span class="dot" style="background:${xToCss(item.best_x)};margin-right:6px;"></span>${escapeHtml(item.player)}</td>
+            <td class="mono" style="color:var(--human);font-weight:700">${item.best_score}%</td>
+            <td class="mono">${item.best_loss.toFixed(4)}</td>
+            <td class="mono">${item.steps}</td>
+          </tr>
+        `).join("");
+      }
+
+      // Arena spectrum overlay
+      const latestNorm = appState && appState.latest_sample ? appState.latest_sample.normalized : null;
+      renderSpectrumBars("arenaSpectrumSvg", latestNorm, {
+        height: 270,
+        isNorm: true,
+        overlay: arena.target_normalized
+      });
+
+      renderConvergence(arena);
+    }
+
+    function renderQueue(q) {
+      if (!q) return;
+      const btnAuto = document.getElementById("btnQueueAuto");
+      btnAuto.textContent = q.auto ? "自动接单：开" : "自动接单：关";
+      btnAuto.classList.toggle("active-toggle", !!q.auto);
+
+      const curBox = document.getElementById("queueCurrentBox");
+      if (q.current) {
+        curBox.style.display = "block";
+        document.getElementById("queueCurrentTitle").textContent = `正在复刻：${q.current.author} 的「${q.current.color_name}」`;
+        document.getElementById("queueCurrentStep").textContent = `${q.current.steps || 0} / ${q.current.budget}`;
+        const pct = Math.min(100, ((q.current.steps || 0) / q.current.budget) * 100);
+        document.getElementById("queueCurrentFill").style.width = `${pct}%`;
+      } else {
+        curBox.style.display = "none";
+      }
+
+      document.getElementById("queueCount").textContent = `${q.pending.length} 个排队中`;
+      const pendingEl = document.getElementById("queuePendingList");
+      if (!q.pending.length) {
+        pendingEl.innerHTML = `<div class="muted">还没有观众提交颜色，扫码或访问 /mobile 即可投稿！</div>`;
+      } else {
+        pendingEl.innerHTML = q.pending.map((item, i) => `
+          <div class="queue-item">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="dot" style="width:18px;height:18px;background:${xToCss(item.target_x)}"></span>
+              <div>
+                <div style="font-weight:700;font-size:13px;">${escapeHtml(item.color_name)}</div>
+                <div class="muted" style="font-size:11.5px;">${escapeHtml(item.author)} · ${fmtX(item.target_x)}</div>
+              </div>
+            </div>
+            <span class="mono muted">#${i + 1}</span>
+          </div>
+        `).join("");
+      }
+
+      document.getElementById("galleryCount").textContent = `${q.gallery.length} 件作品`;
+      const galEl = document.getElementById("galleryGrid");
+      if (!q.gallery.length) {
+        galEl.innerHTML = `<div class="muted">等待第一件观众配色由 Pico 实测复刻完成后展示在这里。</div>`;
+      } else {
+        galEl.innerHTML = q.gallery.map(item => `
+          <div class="gallery-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong>${escapeHtml(item.color_name)}</strong>
+              <span class="mono" style="color:var(--human);font-weight:800">${item.best_score}%</span>
+            </div>
+            <div class="muted" style="font-size:12px;">出题人：${escapeHtml(item.author)}</div>
+            <div class="pair-swatch">
+              <div style="background:${xToCss(item.target_x)}">目标 ${fmtX(item.target_x)}</div>
+              <div style="background:${xToCss(item.best_x)}">BO ${fmtX(item.best_x)}</div>
+            </div>
+            <div class="mono muted" style="font-size:11.5px;">最小谱差 L=${item.best_loss !== null ? item.best_loss.toFixed(4) : "--"} · ${item.steps}步</div>
+          </div>
+        `).join("");
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    function applyState(state) {
+      if (state.course) {
+        for (const id of ["humanBudget", "aiBudget"]) {
+          const select = document.getElementById(id);
+          select.replaceChildren(new Option(state.course.budget + " 次（课程统一预算）", state.course.budget));
+          select.disabled = true;
+        }
+      }
+      appState = state;
+      document.getElementById("btnHumanMeasure").textContent = state.mode === "PHYSICAL" ? "🧪 点亮真灯并实测一次" : "🧪 仿真测量一次";
+      const modeEl = document.getElementById("badgeMode");
+      modeEl.textContent = state.mode === "PHYSICAL"
+        ? `PHYSICAL 真机 (${state.serial_port || "USB"})`
+        : "SIMULATED 仿真彩排模式";
+      modeEl.className = "pill " + (state.mode === "PHYSICAL" ? "physical" : "simulated");
+
+      const calEl = document.getElementById("badgeCal");
+      if (state.calibration) {
+        calEl.textContent = `已校准 · A=${state.calibration.reference_scale.toFixed(0)} · SNR=${state.calibration.snr}x`;
+        calEl.className = "pill ok";
+      } else {
+        calEl.textContent = "未校准";
+        calEl.className = "pill warn";
+      }
+
+      const jobEl = document.getElementById("badgeJob");
+      if (state.active_job) {
+        jobEl.style.display = "inline-flex";
+        jobEl.className = "pill busy";
+        jobEl.textContent = `运行中：${state.active_job}`;
+      } else {
+        jobEl.style.display = "none";
+      }
+
+      if (state.last_error) {
+        showError(state.last_error.code, state.last_error.message);
+      }
+
+      const streamBtn = document.getElementById("btnLiveStream");
+      streamBtn.textContent = state.live_streaming ? "⏹ 停止实时连续采样" : "▶ 开启实时连续采样";
+      streamBtn.classList.toggle("active-toggle", !!state.live_streaming);
+      document.getElementById("liveStreamStatus").textContent = state.live_streaming ? "实时连续采集中" : "待机";
+      document.getElementById("liveStreamStatus").style.color = state.live_streaming ? "#6ee7b7" : "var(--muted)";
+
+      if (state.mobile_url) {
+        document.getElementById("mobileUrlText").textContent = state.mobile_url;
+      }
+
+      syncLiveControls(state.live_x || [0, 0, 0]);
+      renderSample(state.latest_sample);
+      renderArena(state.arena);
+      renderQueue(state.queue);
+    }
+
+    // ---------- Event Wiring ----------
+
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("view-" + btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    document.getElementById("btnCalibrate").addEventListener("click", () => api("/api/calibrate", {}));
+    document.getElementById("btnLedOff").addEventListener("click", () => api("/api/led/off", {}));
+    document.getElementById("btnReconnect").addEventListener("click", () => api("/api/device/reconnect", {}).then(hideError));
+    document.getElementById("btnErrReconnect").addEventListener("click", () => api("/api/device/reconnect", {}).then(hideError));
+    document.getElementById("btnErrClose").addEventListener("click", hideError);
+
+    document.getElementById("btnAudio").addEventListener("click", (e) => {
+      audioEnabled = !audioEnabled;
+      e.target.textContent = audioEnabled ? "🔊 音效开" : "🔇 音效关";
+      if (audioEnabled) playChime(75);
+    });
+
+    function getLiveSliderX() {
+      return [
+        parseFloat(document.getElementById("liveR").value),
+        parseFloat(document.getElementById("liveG").value),
+        parseFloat(document.getElementById("liveB").value)
+      ];
+    }
+
+    ["liveR", "liveG", "liveB"].forEach(id => {
+      document.getElementById(id).addEventListener("input", () => {
+        const x = getLiveSliderX();
+        syncLiveControls(x);
+        if (appState && appState.live_streaming) {
+          clearTimeout(sliderTimer);
+          sliderTimer = setTimeout(() => api("/api/live/stream", { enabled: true, x }), 70);
+        }
+      });
+    });
+
+    document.querySelectorAll(".preset-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const x = btn.dataset.preset.split(",").map(Number);
+        syncLiveControls(x);
+        if (appState && appState.live_streaming) {
+          api("/api/live/stream", { enabled: true, x });
+        } else {
+          api("/api/live/measure", { x });
+        }
+      });
+    });
+
+    document.getElementById("btnLiveStream").addEventListener("click", () => {
+      const next = !(appState && appState.live_streaming);
+      api("/api/live/stream", { enabled: next, x: getLiveSliderX() });
+    });
+
+    document.getElementById("btnLiveOnce").addEventListener("click", () => {
+      api("/api/live/measure", { x: getLiveSliderX() });
+    });
+
+    document.getElementById("btnScaleToggle").addEventListener("click", (e) => {
+      showNormalized = !showNormalized;
+      e.target.textContent = showNormalized ? "显示：扣暗归一化 (z)" : "显示：原始计数 (Raw)";
+      if (appState) renderSample(appState.latest_sample);
+    });
+
+    document.getElementById("btnSnapSave").addEventListener("click", () => {
+      if (appState && appState.latest_sample) {
+        liveSnapshot = appState.latest_sample;
+        renderSample(appState.latest_sample);
+      }
+    });
+    document.getElementById("btnSnapClear").addEventListener("click", () => {
+      liveSnapshot = null;
+      if (appState) renderSample(appState.latest_sample);
+    });
+
+    // Arena controls
+    function getArenaSliderX() {
+      return [
+        parseFloat(document.getElementById("arenaR").value),
+        parseFloat(document.getElementById("arenaG").value),
+        parseFloat(document.getElementById("arenaB").value)
+      ];
+    }
+    function syncArenaPreview() {
+      const x = getArenaSliderX();
+      document.getElementById("arenaRVal").textContent = x[0].toFixed(1);
+      document.getElementById("arenaGVal").textContent = x[1].toFixed(1);
+      document.getElementById("arenaBVal").textContent = x[2].toFixed(1);
+      document.getElementById("arenaPreviewBox").style.background = xToCss(x);
+    }
+    ["arenaR", "arenaG", "arenaB"].forEach(id => {
+      document.getElementById(id).addEventListener("input", syncArenaPreview);
+    });
+    syncArenaPreview();
+
+    document.getElementById("btnMysteryTarget").addEventListener("click", () => api("/api/arena/target", { kind: "mystery", hide_target: true }));
+    document.getElementById("btnAmbientTarget").addEventListener("click", () => api("/api/arena/target", { kind: "ambient" }));
+    document.getElementById("btnCustomTarget").addEventListener("click", () => {
+      const x = [
+        parseFloat(document.getElementById("customR").value),
+        parseFloat(document.getElementById("customG").value),
+        parseFloat(document.getElementById("customB").value)
+      ];
+      api("/api/arena/target", { kind: "custom", x, hide_target: true });
+    });
+    document.getElementById("btnReveal").addEventListener("click", () => api("/api/arena/reveal", {}));
+    document.getElementById("btnHumanStart").addEventListener("click", () => {
+      api("/api/arena/human/start", {
+        player: document.getElementById("humanName").value,
+        budget: parseInt(document.getElementById("humanBudget").value, 10)
+      });
+    });
+    document.getElementById("btnHumanMeasure").addEventListener("click", () => {
+      api("/api/arena/human/measure", { x: getArenaSliderX() });
+    });
+    document.getElementById("btnRunRandom").addEventListener("click", () => {
+      api("/api/arena/ai/start", { strategy: "random", budget: parseInt(document.getElementById("aiBudget").value, 10) });
+    });
+    document.getElementById("btnRunBo").addEventListener("click", () => {
+      api("/api/arena/ai/start", { strategy: "bo", budget: parseInt(document.getElementById("aiBudget").value, 10) });
+    });
+    document.getElementById("btnStopAi").addEventListener("click", () => api("/api/arena/ai/stop", {}));
+
+    // Queue controls
+    document.getElementById("btnQueueRunNext").addEventListener("click", () => api("/api/queue/run_next", { budget: 16 }));
+    document.getElementById("btnQueueAuto").addEventListener("click", () => {
+      const next = !(appState && appState.queue && appState.queue.auto);
+      api("/api/queue/auto", { enabled: next });
+    });
+
+    // ---------- SSE Connection ----------
+
+    async function bootstrap() {
+      const init = await api("/api/state");
+      applyState(init.state);
+
+      const es = new EventSource("/api/events");
+      es.addEventListener("state", (ev) => {
+        const msg = JSON.parse(ev.data);
+        applyState(Object.assign({}, appState, msg.data));
+      });
+      es.addEventListener("sample", (ev) => {
+        const msg = JSON.parse(ev.data);
+        if (appState) appState.latest_sample = msg.data;
+        renderSample(msg.data);
+        if (appState && appState.arena && appState.arena.target_normalized) {
+          renderSpectrumBars("arenaSpectrumSvg", msg.data.normalized, {
+            height: 270,
+            isNorm: true,
+            overlay: appState.arena.target_normalized
+          });
+        }
+      });
+      es.addEventListener("human_step", (ev) => {
+        const msg = JSON.parse(ev.data);
+        if (appState) appState.arena = msg.data.arena;
+        document.getElementById("arenaLatestTag").textContent =
+          `人类第 ${msg.data.row.iteration} 步 · 相似度 ${msg.data.row.score}% · L=${msg.data.row.loss.toFixed(4)}`;
+        playChime(msg.data.row.score);
+        renderArena(msg.data.arena);
+      });
+      es.addEventListener("ai_step", (ev) => {
+        const msg = JSON.parse(ev.data);
+        if (appState) appState.arena = msg.data.arena;
+        document.getElementById("arenaLatestTag").textContent =
+          `${msg.data.strategy.toUpperCase()} 第 ${msg.data.row.iteration} 步 · 相似度 ${msg.data.row.score}% · L=${msg.data.row.loss.toFixed(4)}`;
+        playChime(msg.data.row.score);
+        renderArena(msg.data.arena);
+      });
+      es.addEventListener("queue_update", (ev) => {
+        const msg = JSON.parse(ev.data);
+        if (appState) appState.queue = msg.data;
+        renderQueue(msg.data);
+      });
+      es.addEventListener("queue_step", (ev) => {
+        const msg = JSON.parse(ev.data);
+        if (appState && appState.queue) {
+          appState.queue.current = msg.data.task;
+          renderQueue(appState.queue);
+          playChime(msg.data.row.score);
+        }
+      });
+      es.addEventListener("error", (ev) => {
+        if (ev.data) {
+          const msg = JSON.parse(ev.data);
+          showError(msg.data.code, msg.data.message);
+        }
+      });
+    }
+
+    bootstrap().catch(err => showError("INIT_ERROR", err.message));
+  </script>
+</body>
+</html>

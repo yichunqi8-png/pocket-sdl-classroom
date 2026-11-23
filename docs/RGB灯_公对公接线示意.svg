@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050"><rect width="1600" height="1050" fill="white"/>
+<text x="60" y="75" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="40" fill="#263B42" font-weight="700">RGB 灯怎么接？用 3 根公对公杜邦线</text>
+<text x="60" y="123" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="25" fill="#526A72" font-weight="400">按你发来的灯板和配套线绘制 · 白色插头接灯，黑色母头接杜邦线</text>
+<rect x="60" y="170" width="450" height="65" rx="10" fill="#EAF5F0" stroke="none" stroke-width="2"/>
+<text x="78" y="212" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="25" fill="#168C79" font-weight="700">① 插入配套白色插头</text>
+<rect x="540" y="170" width="450" height="65" rx="10" fill="#EAF5F0" stroke="none" stroke-width="2"/>
+<text x="558" y="212" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="25" fill="#168C79" font-weight="700">② 黑色母头插入公头</text>
+<rect x="1060" y="170" width="450" height="65" rx="10" fill="#EAF5F0" stroke="none" stroke-width="2"/>
+<text x="1078" y="212" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="25" fill="#168C79" font-weight="700">③ 另一公头插面包板</text>
+<rect x="65" y="300" width="230" height="300" rx="18" fill="#263B42" stroke="none" stroke-width="2"/>
+<text x="93" y="345" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="26" fill="white" font-weight="700">DFR0605</text>
+<text x="93" y="380" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="24" fill="white" font-weight="400">RGB 灯</text>
+<rect x="115" y="416" width="110" height="100" rx="8" fill="#E3E9E1" stroke="none" stroke-width="2"/>
+<circle cx="170" cy="466" r="32" fill="#FAF7DD"/>
+<circle cx="170" cy="466" r="15" fill="#F2CD67"/>
+<rect x="90" y="555" width="150" height="30" rx="3" fill="#475D64" stroke="none" stroke-width="2"/>
+<rect x="115" y="574" width="7" height="38" rx="1" fill="#D6BE83" stroke="none" stroke-width="2"/>
+<rect x="165" y="574" width="7" height="38" rx="1" fill="#D6BE83" stroke="none" stroke-width="2"/>
+<rect x="215" y="574" width="7" height="38" rx="1" fill="#D6BE83" stroke="none" stroke-width="2"/>
+<text x="65" y="662" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="23" fill="#526A72" font-weight="700">DO 输出针脚：不接</text>
+<rect x="272" y="395" width="55" height="154" rx="5" fill="#F4F0E1" stroke="#BDB8A7" stroke-width="2"/>
+<rect x="325" y="399" width="74" height="146" rx="5" fill="#FFFDF2" stroke="#BDB8A7" stroke-width="2"/>
+<rect x="345" y="386" width="33" height="17" rx="2" fill="#DDD8C7" stroke="none" stroke-width="2"/>
+<polyline points="399,425 590,425" fill="none" stroke="#D75B50" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="399,472 590,472" fill="none" stroke="#263B42" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="399,519 590,519" fill="none" stroke="#168C79" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="224" y="735" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="22" fill="#526A72" font-weight="400">白色插座</text>
+<text x="348" y="780" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="22" fill="#526A72" font-weight="400">白色插头</text>
+<polyline points="284,710 295,566" fill="none" stroke="#9BA9A4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="380,753 370,558" fill="none" stroke="#9BA9A4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="245" y="835" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="23" fill="#168C79" font-weight="700">沿卡扣方向插到底</text>
+<rect x="590" y="392" width="120" height="160" rx="6" fill="#243238" stroke="none" stroke-width="2"/>
+<rect x="675" y="411" width="34" height="28" rx="2" fill="#111C21" stroke="none" stroke-width="2"/>
+<rect x="682" y="418" width="19" height="14" rx="1" fill="#6F7A72" stroke="none" stroke-width="2"/>
+<rect x="675" y="458" width="34" height="28" rx="2" fill="#111C21" stroke="none" stroke-width="2"/>
+<rect x="682" y="465" width="19" height="14" rx="1" fill="#6F7A72" stroke="none" stroke-width="2"/>
+<rect x="675" y="505" width="34" height="28" rx="2" fill="#111C21" stroke="none" stroke-width="2"/>
+<rect x="682" y="512" width="19" height="14" rx="1" fill="#6F7A72" stroke="none" stroke-width="2"/>
+<text x="532" y="735" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="24" fill="#263B42" font-weight="700">黑色三孔母头</text>
+<polyline points="630,710 650,567" fill="none" stroke="#9BA9A4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="697" y="422" width="58" height="6" rx="1" fill="#C7A85F" stroke="none" stroke-width="2"/>
+<rect x="745" y="414" width="46" height="22" rx="3" fill="#38474D" stroke="none" stroke-width="2"/>
+<polyline points="791,425 1020,425" fill="none" stroke="#D75B50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1020" y="414" width="46" height="22" rx="3" fill="#38474D" stroke="none" stroke-width="2"/>
+<rect x="1066" y="422" width="47" height="6" rx="1" fill="#C7A85F" stroke="none" stroke-width="2"/>
+<rect x="697" y="469" width="58" height="6" rx="1" fill="#C7A85F" stroke="none" stroke-width="2"/>
+<rect x="745" y="461" width="46" height="22" rx="3" fill="#38474D" stroke="none" stroke-width="2"/>
+<polyline points="791,472 1020,472" fill="none" stroke="#263B42" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1020" y="461" width="46" height="22" rx="3" fill="#38474D" stroke="none" stroke-width="2"/>
+<rect x="1066" y="469" width="47" height="6" rx="1" fill="#C7A85F" stroke="none" stroke-width="2"/>
+<rect x="697" y="516" width="58" height="6" rx="1" fill="#C7A85F" stroke="none" stroke-width="2"/>
+<rect x="745" y="508" width="46" height="22" rx="3" fill="#38474D" stroke="none" stroke-width="2"/>
+<polyline points="791,519 1020,519" fill="none" stroke="#168C79" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1020" y="508" width="46" height="22" rx="3" fill="#38474D" stroke="none" stroke-width="2"/>
+<rect x="1066" y="516" width="47" height="6" rx="1" fill="#C7A85F" stroke="none" stroke-width="2"/>
+<rect x="1110" y="300" width="425" height="335" rx="14" fill="#F1F3EF" stroke="#CAD4D0" stroke-width="2"/>
+<text x="1132" y="347" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="25" fill="#263B42" font-weight="700">面包板连接位置</text>
+<rect x="1113" y="421" width="6" height="8" rx="1" fill="#79857F" stroke="none" stroke-width="2"/>
+<rect x="1135" y="421" width="6" height="8" rx="1" fill="#79857F" stroke="none" stroke-width="2"/>
+<rect x="1157" y="421" width="6" height="8" rx="1" fill="#79857F" stroke="none" stroke-width="2"/>
+<circle cx="1116" cy="425" r="6" fill="#D75B50"/>
+<text x="1180" y="433" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="21" fill="#D75B50" font-weight="700">P2 · 3.3V 分配孔</text>
+<rect x="1113" y="468" width="6" height="8" rx="1" fill="#79857F" stroke="none" stroke-width="2"/>
+<rect x="1135" y="468" width="6" height="8" rx="1" fill="#79857F" stroke="none" stroke-width="2"/>
+<rect x="1157" y="468" width="6" height="8" rx="1" fill="#79857F" stroke="none" stroke-width="2"/>
+<circle cx="1116" cy="472" r="6" fill="#263B42"/>
+<text x="1180" y="480" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="21" fill="#263B42" font-weight="700">G2 · GND 分配孔</text>
+<rect x="1113" y="515" width="6" height="8" rx="1" fill="#79857F" stroke="none" stroke-width="2"/>
+<rect x="1135" y="515" width="6" height="8" rx="1" fill="#79857F" stroke="none" stroke-width="2"/>
+<rect x="1157" y="515" width="6" height="8" rx="1" fill="#79857F" stroke="none" stroke-width="2"/>
+<circle cx="1116" cy="519" r="6" fill="#168C79"/>
+<text x="1180" y="527" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="21" fill="#168C79" font-weight="700">与 GP28 相通的孔</text>
+<text x="1130" y="595" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="18" fill="#526A72" font-weight="400">位置示意，不代表三排必须相邻</text>
+<text x="785" y="353" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="25" fill="#168C79" font-weight="700">三根公对公杜邦线</text>
+<text x="743" y="676" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="22" fill="#263B42" font-weight="700">公头：露出金属针</text>
+<polyline points="798,650 721,539" fill="none" stroke="#9BA9A4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1005" y="735" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="22" fill="#263B42" font-weight="700">另一端也是公头</text>
+<polyline points="1080,708 1090,539" fill="none" stroke="#9BA9A4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="540" y="790" width="995" height="70" rx="10" fill="#F3F7F6" stroke="none" stroke-width="2"/>
+<text x="562" y="834" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="23" fill="#263B42" font-weight="600">红线 → ＋ / 3.3V     黑线 → − / GND     绿线 → DI / GP28</text>
+<rect x="60" y="900" width="1475" height="103" rx="10" fill="#FFF5E9" stroke="none" stroke-width="2"/>
+<text x="85" y="941" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="25" fill="#263B42" font-weight="700">先断开 USB，再接线。黑色母头不用套在灯板的 DO 输出针脚上。</text>
+<text x="85" y="981" font-family="Hiragino Sans GB, PingFang SC, Arial" font-size="22" fill="#526A72" font-weight="400">插好配套线后，再按板上的 ＋、−、DI 标识核对线序；母孔与公针插紧，不剪线、不硬塞。</text>
+</svg>
