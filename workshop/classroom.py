@@ -91,7 +91,7 @@ class ClassroomEngine(WorkshopEngine):
             raise LabError('CANCELLED', '已停止本次实验')
         used, raw, ms = super()._measure_raw(x, turn_off_after)
         if self.mode == 'SIMULATED' and self.course['fault'] == 'drift':
-            raw = raw * (0.65 if self.device.sample_count % 2 else 1.35)
+            raw = np.rint(raw * (0.65 if self.device.sample_count % 2 else 1.35))
         if self._ready:
             # Include calibration, stability, target and confirmation raw readings, not just search rows.
             with self._save_lock:
@@ -216,6 +216,50 @@ class ClassroomEngine(WorkshopEngine):
             finally:
                 if report['status'] == 'running': report['status'] = 'interrupted'
         return self._start_course_job('stability', work)
+
+    def reliability_start(self, stage='baseline'):
+        if self.mode != 'SIMULATED':
+            raise LabError('SIMULATION_ONLY', '测量可信度对照仅在仿真中进行，不移动真实装置')
+        self._assert_no_active_job()
+        if not self.calibration:
+            raise LabError('QUALITY_GATE', '请先在校准与质检页采集暗场和参考')
+        if stage not in ('baseline', 'drift', 'recovery'):
+            raise LabError('INVALID_INPUT', '未知对照步骤')
+        experiment = self.course.get('reliability')
+        if stage == 'baseline':
+            self.checkpoint('before_reliability_experiment')
+            experiment = {'calibration_id': self.calibration['id'], 'x': [.5, .5, .5],
+                          'created_at': _utc_iso(), 'stages': {}}
+            self.course['reliability'] = experiment
+        else:
+            prior = 'baseline' if stage == 'drift' else 'drift'
+            if not experiment or experiment['calibration_id'] != self.calibration['id']:
+                raise LabError('QUALITY_GATE', '校准已变化，请从正常测量重新开始')
+            if experiment['stages'].get(prior, {}).get('status') != 'completed':
+                raise LabError('INVALID_STATE', '请先完成上一步对照')
+            self.checkpoint('before_reliability_stage')
+            if stage == 'drift': experiment['stages'].pop('recovery', None)
+        report = {'calibration_id': self.calibration['id'], 'x': experiment['x'],
+                  'rows': [], 'status': 'running', 'passed': False, 'limit': .05}
+        experiment['stages'][stage] = report
+        self.course['stability'] = report
+        self.course['fault'] = 'drift' if stage == 'drift' else 'none'
+        self.device.fail_at = self.device.saturated_at = None
+        def work():
+            try:
+                for _ in range(5):
+                    _, raw, ms = self._measure_raw(experiment['x'])
+                    report['rows'].append({'raw': raw.tolist(), 'duration_ms': ms})
+                    self.publish('state', self.get_state())
+                    if self.sim_delay_s: time.sleep(self.sim_delay_s)
+                stats = relative_stability([r['raw'] for r in report['rows']], self.calibration['dark_mean'])
+                report.update(rms_relative=float(stats['rms_relative']),
+                              passed=bool(stats['rms_relative'] < .05), status='completed')
+            finally:
+                # Drift is confined to this experiment; it cannot silently affect later searches.
+                self.course['fault'] = 'none'
+                if report['status'] == 'running': report['status'] = 'interrupted'
+        return self._start_course_job('measurement_reliability', work)
 
     def confirm_start(self, repeats=3):
         self._require_quality()

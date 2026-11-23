@@ -76,6 +76,7 @@ def course_handler(engine, audience_port, audience=False):
                     elif path == '/api/course/stability': result=engine.stability_start(**b)
                     elif path == '/api/course/confirm': result=engine.confirm_start(**b)
                     elif path == '/api/course/benchmark': result=engine.benchmark_start(**b)
+                    elif path == '/api/course/reliability': result=engine.reliability_start(**b)
                     elif path == '/api/course/fault': result=engine.fault_set(**b)
                     elif path == '/api/course/finish': result=engine.finish_round()
                     else: raise LabError('NOT_FOUND','未知课程接口')
