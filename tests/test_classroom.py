@@ -40,7 +40,7 @@ class ClassroomTests(unittest.TestCase):
         self.prepare()
         with self.assertRaises(LabError):self.e.settings(seed=12,budget=8)
         self.e.arena_human_start('test',budget=20)
-        self.assertEqual(self.e.arena['human']['budget'],8)
+        self.assertEqual(self.e.arena['human']['budget'],20)
         self.e.arena_human_measure([.3,.6,.4])
         for strategy in ['random','bo']:
             self.e.arena_start_ai(strategy,budget=24);self.wait()
