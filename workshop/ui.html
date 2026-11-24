@@ -650,12 +650,17 @@
             </div>
             <div class="inline-form">
               <input id="humanName" type="text" value="挑战者1号" placeholder="你的昵称" style="flex:1;min-width:110px" />
-              <select id="humanBudget">
+              <select id="humanBudget" aria-label="人类独立预算">
+                <option value="5">5 次机会</option>
                 <option value="8">8 次机会</option>
                 <option value="10" selected>10 次机会</option>
                 <option value="12">12 次机会</option>
+                <option value="16">16 次机会</option>
+                <option value="20">20 次机会</option>
+                <option value="24">24 次机会</option>
               </select>
               <button id="btnHumanStart">新选手上场</button>
+              <span class="muted">人类预算独立选择；点击“新选手上场”生效并开始新的挑战记录。</span>
             </div>
 
             <div class="slider-group" style="margin-top:10px;">
@@ -1087,7 +1092,7 @@
         document.getElementById("swHuman").textContent = "--";
         document.getElementById("swHumanScore").textContent = "--";
         document.getElementById("swHumanSub").textContent = h ? `${h.player} 准备就绪` : "尚未挑战";
-        document.getElementById("humanBudgetTag").textContent = h ? `0 / ${h.budget}` : `0 / ${appState?.course?.budget || 10}`;
+        document.getElementById("humanBudgetTag").textContent = h ? `0 / ${h.budget}` : `0 / ${document.getElementById("humanBudget").value}`;
       }
 
       // Random & BO swatches
@@ -1220,9 +1225,9 @@
 
     function applyState(state) {
       if (state.course) {
-        for (const id of ["humanBudget", "aiBudget"]) {
+        for (const id of ["aiBudget"]) {
           const select = document.getElementById(id);
-          select.replaceChildren(new Option(state.course.budget + " 次（课程统一预算）", state.course.budget));
+          select.replaceChildren(new Option(state.course.budget + " 次（Random / BO）", state.course.budget));
           select.disabled = true;
         }
       }
@@ -1389,7 +1394,10 @@
         budget: parseInt(document.getElementById("humanBudget").value, 10)
       });
     });
-    document.getElementById("btnHumanMeasure").addEventListener("click", () => {
+    document.getElementById("btnHumanMeasure").addEventListener("click", async () => {
+      if (!appState?.arena?.human) {
+        await api("/api/arena/human/start", {player: document.getElementById("humanName").value, budget: parseInt(document.getElementById("humanBudget").value, 10)});
+      }
       api("/api/arena/human/measure", { x: getArenaSliderX() });
     });
     document.getElementById("btnRunRandom").addEventListener("click", () => {

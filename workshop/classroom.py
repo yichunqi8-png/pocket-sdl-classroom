@@ -118,7 +118,7 @@ class ClassroomEngine(WorkshopEngine):
         self._assert_no_active_job()
         seed, budget = int(seed), int(budget)
         if not 0 <= seed <= 2**32-1 or not 6 <= budget <= 24:
-            raise LabError('INVALID_INPUT', 'seed 范围 0–4294967295，统一预算 6–24')
+            raise LabError('INVALID_INPUT', 'seed 范围 0–4294967295，Random/BO 算法预算 6–24')
         if self.arena['round_id'] and (seed != self.course['seed'] or budget != self.course['budget']):
             raise LabError('ROUND_LOCKED', '当前轮次参数已锁定；请先结束并归档本轮，再更改种子/预算')
         self.course.update(group=str(group)[:80], prediction=str(prediction)[:2000],
@@ -148,10 +148,10 @@ class ClassroomEngine(WorkshopEngine):
         self.publish('state', self.get_state())
         return self._public_arena()
 
-    def arena_human_start(self, player_name='现场挑战者', budget=None):
+    def arena_human_start(self, player_name='现场挑战者', budget=10):
         self._require_quality()
         self.checkpoint('before_new_player')
-        return super().arena_human_start(player_name, self.course['budget'])
+        return super().arena_human_start(player_name, 10 if budget is None else budget)
 
     def arena_human_measure(self, x):
         self._require_quality()
