@@ -19,7 +19,15 @@ python integrations/unilab/pocket-sdl-lab/deployment/start.py --mode SIMULATED
 ## 保存并执行
 
 在UniLabOS工作流模板中找到“Pocket SDL 三色光谱测量”，绑定到pico_spectro_01，实例化并保存为本组工作流，再执行。
-模板UUID：3556c7e5-f110-5bee-8334-a4404fe0e3a7。
+也可在另一个终端保存：
+
+```sh
+python integrations/unilab/pocket-sdl-lab/deployment/save_workflow.py --name "第1组三色测量"
+# 加 --run 会立即在当前设备模式下执行，先确认是仿真
+python integrations/unilab/pocket-sdl-lab/deployment/save_workflow.py --name "第1组三色测量" --run
+```
+
+脚本按模板名称查询实际UUID，不依赖本机路径。
 
 流程：连接并开始记录 → 自检 → 红[1,0,0] → 绿[0,1,0] → 蓝[0,0,1] → 保存读数 → 关灯并断开。
 学生可在画布修改三组RGB；每组分量范围0–1。每次测完默认立即关灯，末尾再执行最终清理。
@@ -45,3 +53,6 @@ python -m pocket_sdl.three_color --mode SIMULATED
 python -m pocket_sdl.three_color --mode PHYSICAL
 ```
 这仅验证驱动与记录逻辑，不能代替UniLabOS调度和真机验收。
+
+
+验收记录：本机UniLabOS 0.12.3已成功注册模板、保存工作流并通过Hostlink执行完整七步仿真。真机尚待现场联调。工作流任务ID和本机记录不随公开发布包分发。
