@@ -20,3 +20,6 @@ wheelhouse/
 .student-venv/
 
 classroom-data/
+
+.runtime/
+three-color-data/

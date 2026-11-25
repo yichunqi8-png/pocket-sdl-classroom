@@ -90,7 +90,7 @@ def main(argv=None):
     p=argparse.ArgumentParser(description='Pocket SDL Classroom 独立课程版')
     p.add_argument('--mode',choices=['physical','simulated'],default='physical')
     p.add_argument('--port',type=int,default=8770)
-    p.add_argument('--audience-port',type=int,default=8771,help='同局域网观众端口，0 禁用')
+    p.add_argument('--audience-port',type=int,default=0,help='同局域网观众端口，0 禁用')
     p.add_argument('--serial-number')
     p.add_argument('--no-open',action='store_true')
     p.add_argument('--data-dir')

@@ -1,3 +1,19 @@
+# Pocket SDL Classroom 学生版
+
+下载Release中的启动包并解压。每位同学在自己的电脑启动，不需要访问教师电脑的localhost。
+
+- 先安装Python 3.12（支持3.10+）。Windows安装时勾选Add Python to PATH。
+- 无设备：Mac双击Start Simulation.command；Windows双击Start Simulation.bat。
+- 有设备：双击Start Pocket SDL对应文件。设备固件由助教提前配置，失败不会自动切仿真。
+- 首次启动会创建独立环境并联网安装依赖，之后可本地使用。保留终端窗口；浏览器自动打开。
+- 如Mac禁止直接打开：在终端运行 `bash "Start Simulation.command"`。
+- 页面包含七任务、图文接线、人类6/12/18次、Random和BO共同12/16/20/24次；讨论记录不强制填写。
+- 本地实验记录在classroom-data；讨论填写保存在浏览器，换电脑不会自动同步。
+- UniLabOS另需独立环境，见[integrations/unilab/README.md](integrations/unilab/README.md)。
+- 本项目基于ZiWei09/pocket-sdl，保留原许可证与来源。下方为原项目参考说明。
+
+---
+
 # Pocket SDL Classroom · 独立课程版
 
 **先读 [课程版使用说明](学生使用说明.md)**。本版增加稳定性准入、统一预算、独立复测、持久归档、多种子仿真研究和手机局域网入口。来源见 [UPSTREAM.md](UPSTREAM.md)，保留原项目许可证。

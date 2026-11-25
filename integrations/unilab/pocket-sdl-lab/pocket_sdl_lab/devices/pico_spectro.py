@@ -8,13 +8,14 @@
 from typing import Any, Dict, List, Optional
 
 from pocket_sdl.device import PicoSpectroDevice
+from pocket_sdl.three_color import ThreeColorSession
 from unilabos.registry.decorators import action, device, not_action, topic_config
 
 
 @device(
     id="pico_spectro",
     category=["spectrometer", "optical", "self_driving_lab"],
-    displayname="Pico AS7341 光谱闭环模块",
+    display_name="Pico AS7341 光谱闭环模块",
     description="基于 Raspberry Pi Pico H、WS2812B LED 与 AS7341 八通道光谱传感器的自主光学测量设备。",
     version="1.0.0",
 )
@@ -47,6 +48,8 @@ class PicoSpectroStation:
             snap_to_grid=snap_to_grid,
             probe_timeout=probe_timeout,
         )
+
+        self._three_color = ThreeColorSession(self._driver)
 
     # ---- 状态属性（只读内存缓存，不触发串口 I/O）----
 
@@ -194,3 +197,23 @@ class PicoSpectroStation:
     @not_action
     def close(self) -> None:
         self._driver.close()
+
+    @action(description="三色流程：连接设备并新建独立结果目录")
+    def begin_three_color(self) -> Dict[str, Any]:
+        return self._three_color.connect()
+
+    @action(description="三色流程：自检；失败时关灯并断开")
+    def check_three_color(self) -> Dict[str, Any]:
+        return self._three_color.doctor()
+
+    @action(description="测量一组RGB并立即保存；失败时清理连接")
+    def record_color(self, r: float, g: float, b: float) -> Dict[str, Any]:
+        return self._three_color.measure(r,g,b)
+
+    @action(description="保存三组读数为JSON和CSV，返回设备主机上的文件目录")
+    def save_three_color(self) -> Dict[str, Any]:
+        return self._three_color.save()
+
+    @action(description="关灯、断开并写入结束状态")
+    def finish_three_color(self) -> Dict[str, Any]:
+        return self._three_color.finish()

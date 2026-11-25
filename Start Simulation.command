@@ -11,6 +11,6 @@ done
 if [ -z "$PYTHON" ]; then
     echo '请先安装 Python 3.10+（推荐 3.12），再双击本文件。下载：https://www.python.org/downloads/'
 else
-    "$PYTHON" launcher/start.py --mode simulated --port 8772 --audience-port 8773 "$@"
+    "$PYTHON" launcher/start.py --mode simulated --port 8772 --audience-port 0 "$@"
 fi
 read -r -p '按回车关闭此窗口……'
