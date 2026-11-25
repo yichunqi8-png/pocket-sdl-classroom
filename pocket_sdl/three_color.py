@@ -14,7 +14,7 @@ class ThreeColorSession:
 
     def _write(self):
         tmp = self.path / 'record.tmp'
-        tmp.write_text(json.dumps(self.report, ensure_ascii=False, indent=2, allow_nan=False))
+        tmp.write_text(json.dumps(self.report, ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
         tmp.replace(self.path / 'record.json')
 
     def cleanup(self):
@@ -58,7 +58,7 @@ class ThreeColorSession:
     def save(self):
         try:
             if len(self.report.get('rows',[]))!=3: raise RuntimeError('需要完整三组读数')
-            with (self.path/'readings.csv').open('w',newline='') as f:
+            with (self.path/'readings.csv').open('w',newline='',encoding='utf-8-sig') as f:
                 writer=csv.writer(f);writer.writerow(['mode','time','r','g','b','415','445','480','515','555','590','630','680'])
                 for row in self.report['rows']:writer.writerow([self.report['mode'],row['timestamp'],*row['rgb'],*row['result']['data']['raw']])
             self.report['status']='measurements_saved';self._write()
