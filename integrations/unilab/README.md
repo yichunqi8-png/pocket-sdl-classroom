@@ -1,63 +1,47 @@
-# 接入 Uni-Lab OS 指南
+# UniLabOS 三色测量拓展（适配本机已验证的 0.12.3 SDK）
 
-本目录下的 [`pocket-sdl-lab/`](pocket-sdl-lab/) 是一个完整的极薄 **Uni-Lab OS 设备包**：
-- 所有硬件通信、USB CDC data 串口自动发现、5 秒看门狗关灯保护、线程锁、饱和校验与校准质量门均留在底层包 `pocket-sdl`（[`pocket_sdl/device.py`](../../pocket_sdl/device.py)）中；
-- 设备包内的 [`pocket_sdl_lab/devices/pico_spectro.py`](pocket-sdl-lab/pocket_sdl_lab/devices/pico_spectro.py) 仅保留供 Uni-Lab OS 静态扫描所需的 `@device`、`@action`、`@topic_config` 与签名声明，方法体单行委托给 `PicoSpectroDevice`；
-- 独立分包可避免与本仓库根目录下并存的 `workshop/`、`firmware/` 冲突，完整满足 Uni-Lab OS 单包目录与四道验证门要求。
+普通七任务工作台不依赖UniLabOS。拓展任务需要在装有UniLabOS 0.12.3的Python环境运行；不要在普通学生启动器环境直接执行。
 
-## 1. 安装底层驱动包与设备包
+## 安装与启动
 
-在已安装 Uni-Lab OS 的 Python 环境中执行：
+在解压后的Pocket-SDL-Classroom目录执行（python必须指向UniLabOS环境）：
 
-```bash
-# 1) 安装底层硬件包（本仓库根目录）
-python -m pip install -e /path/to/pocket-sdl
-
-# 2) 进入设备包目录安装并自检
-export DEVICE_PACKAGE_ROOT="/path/to/pocket-sdl/integrations/unilab/pocket-sdl-lab"
-cd "$DEVICE_PACKAGE_ROOT"
-python -m pip install -e '.[dev]'
-python -m pip check
-python -m compileall pocket_sdl_lab
-python -m pytest -q
+```sh
+python -m pip install -e .
+python -m pip install -e integrations/unilab/pocket-sdl-lab
+unilab package inspect --path integrations/unilab/pocket-sdl-lab --out dist/unilab
+python integrations/unilab/pocket-sdl-lab/deployment/start.py --mode SIMULATED
 ```
 
-## 2. 按顺序通过验证门
+此版本不支持旧说明中的 `unilab package build` 和 `unilab workspace start`。
+启动脚本准备独立community manifest与数据库，管理端口8788、Hostlink端口8789。前端应连接这个后端，而不是其他正在运行的UniLabOS实例。
 
-```bash
-# 验证门二：静态检查设备类型、动作、状态与构造参数
-# 确认输出中出现类型 community.pocket_sdl_lab.pico_spectro
-unilab package inspect \
-  --path "$DEVICE_PACKAGE_ROOT" \
-  --out "$DEVICE_PACKAGE_ROOT/dist/inspect"
+## 保存并执行
 
-# 验证门三：构建交付物
-unilab package build \
-  --path "$DEVICE_PACKAGE_ROOT" \
-  --out "$DEVICE_PACKAGE_ROOT/dist/build"
+在UniLabOS工作流模板中找到“Pocket SDL 三色光谱测量”，绑定到pico_spectro_01，实例化并保存为本组工作流，再执行。
+模板UUID：3556c7e5-f110-5bee-8334-a4404fe0e3a7。
 
-# 验证门四：先以 dry-run 启动检查加载（不执行真实动作）
-unilab workspace start \
-  --workspace "$DEVICE_PACKAGE_ROOT" \
-  --graph "$DEVICE_PACKAGE_ROOT/deployment/graphs/dry-run.json" \
-  --runtime-mode dry-run \
-  --wait 300
+流程：连接并开始记录 → 自检 → 红[1,0,0] → 绿[0,1,0] → 蓝[0,0,1] → 保存读数 → 关灯并断开。
+学生可在画布修改三组RGB；每组分量范围0–1。每次测完默认立即关灯，末尾再执行最终清理。
+文件保存在设备运行主机工作目录下的three-color-data/<独立运行目录>/，不是浏览器下载目录。record.json含模式、设备信息、时间、RGB、原始八通道读数与错误；readings.csv供表格查看。每测一组立即保存，失败不补零。
 
-unilab workspace status --workspace "$DEVICE_PACKAGE_ROOT" --json
-unilab workspace stop --workspace "$DEVICE_PACKAGE_ROOT"
+动作报错时会尝试关灯、断开。手动取消调度后请调用finish_three_color；进程被强制结束时软件不能保证执行清理，不能将看门狗视为完成断开。
+
+## 明天真机联调
+
+1. 用普通工作台先确认Pico可以自检和读数，再关闭真机工作台，释放串口。
+2. 普通插USB，不按BOOTSEL。固定遮光和相对位置。
+3. 停止仿真实例，改用 `python integrations/unilab/pocket-sdl-lab/deployment/start.py --mode PHYSICAL`。
+4. 多设备时先在production.json填写serial_number或明确port。
+5. 在UniLabOS确认设备模式PHYSICAL，先调用connect、doctor、stop、disconnect验收。
+6. 保存并执行三色模板，核对3组×8通道、灯依次变化、CSV/JSON标明PHYSICAL、最后灯灭且断开。
+7. 失败时保留日志和部分记录，先查线缆/串口占用/固件，不自动切仿真。
+
+## 不依赖UniLabOS的驱动预检
+
+```sh
+python -m pocket_sdl.three_color --mode SIMULATED
+# 真机须确认串口未被占用
+python -m pocket_sdl.three_color --mode PHYSICAL
 ```
-
-## 3. 切换仿真与真机运行
-
-- **仿真测试**：使用 `deployment/graphs/dry-run.json` 搭配 `--runtime-mode normal` 执行真实仿真逻辑（`mode="SIMULATED"`）。
-- **真机运行**：先完成现场安全检查，再使用 `deployment/graphs/production.json`（`mode="PHYSICAL"`、`port="auto"`；多台设备时填写 `serial_number`），启动后按 `connect -> doctor -> stop` 做首轮实机验收。
-
-## 4. Linux 工控机固定串口（可选，多设备推荐）
-
-如不希望启动时扫描探测串口，可在 Linux 下添加 `/etc/udev/rules.d/99-pocket-sdl.rules`（替换实际 `ATTRS{serial}`；CircuitPython 双 CDC 的 data 接口号通常为 `02`）：
-
-```udev
-SUBSYSTEM=="tty", ATTRS{idVendor}=="2e8a", ATTRS{serial}=="YOUR_SERIAL_HERE", ENV{ID_USB_INTERFACE_NUM}=="02", SYMLINK+="pocket-sdl-data"
-```
-
-随后在 `deployment/graphs/production.json` 中将 `port` 改为 `"/dev/pocket-sdl-data"`。
+这仅验证驱动与记录逻辑，不能代替UniLabOS调度和真机验收。

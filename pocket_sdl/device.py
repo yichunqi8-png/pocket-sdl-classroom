@@ -144,7 +144,7 @@ def discover_pico_port(
 @device(
     id="pico_spectro",
     category=["spectrometer", "optical", "self_driving_lab"],
-    displayname="Pico AS7341 光谱闭环模块",
+    display_name="Pico AS7341 光谱闭环模块",
     description="基于 Raspberry Pi Pico H、WS2812B LED 与 AS7341 八通道光谱传感器的自主光学测量设备。",
     version="1.0.0",
 )

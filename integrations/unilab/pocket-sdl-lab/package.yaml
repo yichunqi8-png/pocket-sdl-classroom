@@ -1,4 +1,4 @@
 package:
   name: pocket_sdl_lab
 
-workflows: []
+# UniLabOS 0.12.3通过AST扫描@workflow，模板见pocket_sdl_lab/workflows/three_color.py

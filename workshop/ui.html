@@ -646,21 +646,13 @@
           <div class="card">
             <div class="card-title">
               <span>② 人类选手手动调色</span>
-              <span class="mono muted" id="humanBudgetTag">0 / 10</span>
+              <span class="mono muted" id="humanBudgetTag">0 / 12</span>
             </div>
             <div class="inline-form">
               <input id="humanName" type="text" value="挑战者1号" placeholder="你的昵称" style="flex:1;min-width:110px" />
-              <select id="humanBudget" aria-label="人类独立预算">
-                <option value="5">5 次机会</option>
-                <option value="8">8 次机会</option>
-                <option value="10" selected>10 次机会</option>
-                <option value="12">12 次机会</option>
-                <option value="16">16 次机会</option>
-                <option value="20">20 次机会</option>
-                <option value="24">24 次机会</option>
-              </select>
+              <select id="humanBudget" aria-label="人类独立预算"><option value="6">6 次机会</option><option value="12" selected>12 次机会</option><option value="18">18 次机会</option></select>
               <button id="btnHumanStart">新选手上场</button>
-              <span class="muted">人类预算独立选择；点击“新选手上场”生效并开始新的挑战记录。</span>
+              <span class="muted">先选你想试几次，再点“新选手上场”。更换次数后再点一次，会开始一份新的挑战记录。</span>
             </div>
 
             <div class="slider-group" style="margin-top:10px;">
@@ -1225,11 +1217,19 @@
 
     function applyState(state) {
       if (state.course) {
-        for (const id of ["aiBudget"]) {
-          const select = document.getElementById(id);
-          select.replaceChildren(new Option(state.course.budget + " 次（Random / BO）", state.course.budget));
-          select.disabled = true;
+        const select = document.getElementById("aiBudget");
+        if (!select.dataset.courseOptions) {
+          select.replaceChildren(...[12,16,20,24].map(n=>new Option(n+" 次（Random / BO 各自）",n)));
+          select.dataset.courseOptions = "ready";
+          select.addEventListener("change", async ()=> {
+            const c=appState.course;
+            await api("/api/course/settings", {group:c.group,prediction:c.prediction,conclusion:c.conclusion,seed:c.seed,budget:+select.value});
+          });
         }
+        select.value=state.course.budget;
+        select.disabled=!!state.arena.round_id || !!state.active_job;
+        select.title=state.arena.round_id?"本轮已出题；到任务七结束本轮后可修改":"Random和BO各测相同次数；出题前可修改";
+        document.querySelector('[data-tab="queue"]').style.display="none";
       }
       appState = state;
       document.getElementById("btnHumanMeasure").textContent = state.mode === "PHYSICAL" ? "🧪 点亮真灯并实测一次" : "🧪 仿真测量一次";
