@@ -34,29 +34,27 @@ from .core import (
 from .ledger import Ledger, atomic_json, timestamp
 from .workflow import open_device, read_calibration
 
-try:
-    from unilabos.registry.decorators import action, device, not_action, topic_config
-except ImportError:
-    def device(**_kwargs: Any) -> Callable[[Any], Any]:
-        def _decorator(cls: Any) -> Any:
-            return cls
+# Driver stays independent; only the integration adapter registers UniLabOS types.
+def device(**_kwargs: Any) -> Callable[[Any], Any]:
+    def _decorator(cls: Any) -> Any:
+        return cls
 
-        return _decorator
+    return _decorator
 
-    def action(**_kwargs: Any) -> Callable[[Any], Any]:
-        def _decorator(fn: Any) -> Any:
-            return fn
-
-        return _decorator
-
-    def not_action(fn: Any) -> Any:
+def action(**_kwargs: Any) -> Callable[[Any], Any]:
+    def _decorator(fn: Any) -> Any:
         return fn
 
-    def topic_config(**_kwargs: Any) -> Callable[[Any], Any]:
-        def _decorator(fn: Any) -> Any:
-            return fn
+    return _decorator
 
-        return _decorator
+def not_action(fn: Any) -> Any:
+    return fn
+
+def topic_config(**_kwargs: Any) -> Callable[[Any], Any]:
+    def _decorator(fn: Any) -> Any:
+        return fn
+
+    return _decorator
 
 
 logger = logging.getLogger(__name__)
