@@ -6,9 +6,9 @@ class Tests(unittest.TestCase):
   with tempfile.TemporaryDirectory() as d:
    s=ThreeColorSession(PicoSpectroDevice(mode='SIMULATED'),d);s.connect();s.doctor()
    for rgb in [(1,0,0),(0,1,0),(0,0,1)]:s.measure(*rgb)
-   s.save();self.assertTrue(s.finish()['success']);self.assertFalse(s.driver.connected);self.assertEqual(len(json.loads((s.path/'record.json').read_text())['rows']),3)
+   s.save();self.assertTrue(s.finish()['success']);self.assertFalse(s.driver.connected);self.assertEqual(len(json.loads((s.path/'record.json').read_text(encoding='utf-8'))['rows']),3)
  def test_failure(self):
   with tempfile.TemporaryDirectory() as d:
    s=ThreeColorSession(PicoSpectroDevice(mode='SIMULATED'),d);s.connect();s.doctor()
    with self.assertRaises(Exception):s.measure(9,0,0)
-   self.assertFalse(s.driver.connected);self.assertEqual(json.loads((s.path/'record.json').read_text())['status'],'failed')
+   self.assertFalse(s.driver.connected);self.assertEqual(json.loads((s.path/'record.json').read_text(encoding='utf-8'))['status'],'failed')
