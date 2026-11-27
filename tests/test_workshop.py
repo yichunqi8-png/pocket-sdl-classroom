@@ -169,11 +169,15 @@ class TestWorkshopHTTPAndNotebook(unittest.TestCase):
         self.assertEqual(nb["nbformat"], 4)
         self.assertGreaterEqual(len(nb["cells"]), 12)
 
+        import contextlib
+        import io
+
         ns = {}
-        for cell in nb["cells"]:
-            if cell["cell_type"] == "code":
-                source = "".join(cell["source"])
-                exec(compile(source, f"<{cell['id']}>", "exec"), ns, ns)
+        with contextlib.redirect_stdout(io.StringIO()):
+            for cell in nb["cells"]:
+                if cell["cell_type"] == "code":
+                    source = "".join(cell["source"])
+                    exec(compile(source, f"<{cell['id']}>", "exec"), ns, ns)
         self.assertTrue(ns["device"].closed)
         self.assertEqual(len(ns["bo_res"]["best_curve"]), 24)
         self.assertEqual(len(ns["random_res"]["best_curve"]), 24)

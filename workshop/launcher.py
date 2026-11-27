@@ -20,6 +20,18 @@ from workshop.server import make_handler
 MARKER = 'pocket-sdl-student-launcher-v1'
 
 
+def _safe_print(*args, **kwargs):
+    try:
+        print(*args, **kwargs)
+    except UnicodeEncodeError:
+        stream = kwargs.get('file') or sys.stdout
+        text = kwargs.get('sep', ' ').join(str(a) for a in args) + kwargs.get('end', '\n')
+        enc = getattr(stream, 'encoding', None) or 'utf-8'
+        stream.write(text.encode(enc, errors='replace').decode(enc))
+        if kwargs.get('flush'):
+            stream.flush()
+
+
 def pico_ports():
     # Restrict probes to known Pico/CircuitPython VID or Pico descriptions.
     return [p for p in list_ports.comports() if p.vid in (0x2E8A, 0x239A)
@@ -41,16 +53,16 @@ def select_board(ports, serial_number=None, ask=input):
     if len(groups) == 1:
         return next(iter(groups.values()))
     keys = sorted(groups)
-    print('发现多个设备，请选择本组设备：')
+    _safe_print('发现多个设备，请选择本组设备：')
     for i, key in enumerate(keys, 1):
-        print(f'  {i}. 序列号 {key}：' + ', '.join(p.device for p in groups[key]))
+        _safe_print(f'  {i}. 序列号 {key}：' + ', '.join(p.device for p in groups[key]))
     while True:
         answer = ask('输入编号（q 退出）：').strip()
         if answer.lower() == 'q':
             raise LabError('CANCELLED', '已取消连接')
         if answer.isdigit() and 1 <= int(answer) <= len(keys):
             return groups[keys[int(answer) - 1]]
-        print('请输入列表中的编号。')
+        _safe_print('请输入列表中的编号。')
 
 
 def probe(ports, config):
@@ -60,7 +72,7 @@ def probe(ports, config):
         try:
             dev = SerialDevice(port.device, config, hello_timeout=2.0)
             raw = validate_raw(dev.measure((0, 0, 0)), config['sensor']['saturation_raw_exclusive'])
-            print(f'自检通过：{port.device}\n真实暗场 F1–F8：{raw.tolist()}')
+            _safe_print(f'自检通过：{port.device}\n真实暗场 F1–F8：{raw.tolist()}')
             return port.device
         except LabError as error:
             errors.append(f'{port.device}: {error.code}: {error.message}')
@@ -102,7 +114,7 @@ def main(argv=None):
                 server.daemon_threads = True
             except OSError:
                 if existing(url, args.serial_number):
-                    print('真机操作台已在运行，打开已有页面。')
+                    _safe_print('真机操作台已在运行，打开已有页面。')
                     if not args.no_open:
                         webbrowser.open(url)
                     return 0
@@ -125,14 +137,14 @@ def main(argv=None):
                     super().do_GET()
 
         server.RequestHandlerClass = Handler
-        print(f'\nPocket SDL 真机操作台 [PHYSICAL]\n{url}\n保持此窗口打开。退出请按 Ctrl+C。\n自检仅验证一次暗场；实验前仍需固定遮光装置并校准。', flush=True)
+        _safe_print(f'\nPocket SDL 真机操作台 [PHYSICAL]\n{url}\n保持此窗口打开。退出请按 Ctrl+C。\n自检仅验证一次暗场；实验前仍需固定遮光装置并校准。', flush=True)
         if not args.no_open:
             webbrowser.open(url)
         server.serve_forever()
     except KeyboardInterrupt:
-        print('\n正在关灯并释放设备……')
+        _safe_print('\n正在关灯并释放设备……')
     except (LabError, OSError, EOFError) as error:
-        print(f'\n启动失败：{error}\n没有切换到仿真。请保留此窗口给助教检查。', file=sys.stderr)
+        _safe_print(f'\n启动失败：{error}\n没有切换到仿真。请保留此窗口给助教检查。', file=sys.stderr)
         return 1
     finally:
         if engine is not None:
