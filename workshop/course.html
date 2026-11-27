@@ -603,7 +603,7 @@ pre {
         <tr><td>2. 校准与质检</td><td>采集暗场与白光参考，再固定配方连测 5 次，确认波动 &lt; 5%。</td></tr>
         <tr><td>3. 调色比赛</td><td>同一目标下，分别用人类、Random、BO 搜索最佳 RGB 配方。</td></tr>
         <tr><td>4. 独立复测</td><td>固定各方法找到的最佳配方重测 20 次，比较均值与波动。</td></tr>
-        <tr><td>5. 多种子仿真</td><td>在仿真模式下跨种子、跨预算批量对比 Random 与 BO。</td></tr>
+        <tr><td>5. 多种子对比</td><td>在仿真模式下跨种子、跨预算批量对比 Random 与 BO。</td></tr>
         <tr><td>6. 测量可信度</td><td>在仿真模式下做“正常 → 漂移 → 恢复”三组对照。</td></tr>
         <tr><td>7. 保存与归档</td><td>导出 JSON / JSONL / CSV 数据，结束本轮。</td></tr>
       </table>
@@ -636,20 +636,14 @@ pre {
             <option value="24">24 次</option>
           </select>
         </label>
-        <button onclick="saveSettings()">保存设置</button>
+        <button class="busy-lock" onclick="saveSettings()">保存设置</button>
         <span id="settingsHint" class="muted"></span>
       </div>
-      <details>
-        <summary>更多设置（抽签种子 / 实验前预测）</summary>
-        <div class="row" style="margin-top:12px">
-          <label class="field">抽签编号（seed） <input id="seed" type="number" min="0" value="7"></label>
-        </div>
-        <div style="margin-top:12px">
-          <textarea id="prediction" placeholder="实验前猜想（选填）：例如预算较少时，人类能否比 BO 更快？"></textarea>
-        </div>
-      </details>
     </div>
 
+    <details class="box"><summary>小组讨论（选填）：谁能用更少次数找到目标？为什么？</summary>
+      <textarea id="prediction" rows="2" placeholder="记下你们的猜想……"></textarea>
+    </details>
     <div class="card">
       <div class="row" style="justify-content:space-between;margin-bottom:12px">
         <h3 style="margin:0">实物接线核对（9 根公对公，断电接线）</h3>
@@ -760,7 +754,7 @@ pre {
   <section id="experiment">
     <div class="page-head">
       <h2>3. 调色比赛</h2>
-      <p>先点「随机神秘盲盒目标」，再分别完成人类调色、Random 和 BO 搜索，比较谁的谱差 L 更小。</p>
+      <p>先点「随机神秘目标」，再分别完成人类调色、Random 和 BO 搜索，比较谁的谱差 L 更小。</p>
     </div>
 
     <div class="callout row" style="justify-content:space-between">
@@ -810,10 +804,10 @@ pre {
         <label class="field">每配方次数 <input id="repeats" type="number" min="3" max="30" value="20"></label>
         <button onclick="el('repeats').value=3">3 次（快速）</button>
         <button onclick="el('repeats').value=20">20 次（课堂）</button>
-        <button class="primary busy-lock" onclick="post('/api/course/confirm',{repeats:+el('repeats').value})">开始独立复测</button>
+        <button id="btnConfirm" class="primary busy-lock" onclick="post('/api/course/confirm',{repeats:+el('repeats').value})">开始独立复测</button>
       </div>
       <p class="muted" style="margin:0 0 12px">复测结果不回写搜索历史，不改变最佳配方。</p>
-      <div id="confirmation"></div>
+      <p id="confirmHelp" class="muted"></p><div id="confirmation"></div>
     </div>
 
     <details class="box">
@@ -823,27 +817,27 @@ pre {
 
     <div class="step-footer">
       <button onclick="show('experiment')">← 上一步</button>
-      <button onclick="show('study')">下一步：5. 多种子仿真 →</button>
+      <button onclick="show('study')">下一步：5. 多种子对比 →</button>
     </div>
   </section>
 
   <!-- 任务 5 -->
   <section id="study">
     <div class="page-head">
-      <h2>5. 多种子批量仿真</h2>
+      <h2 id="studyTitle">5. 多种子批量对比</h2>
       <p>固定同一目标，换多组抽签编号和预算反复比较 Random 与 BO，看统计表现而非单次输赢。</p>
     </div>
 
-    <div id="studyModeWarn" class="callout warn" style="display:none">当前为真机模式，批量研究仅在仿真启动器中可用。</div>
+    <div id="studyModeWarn" class="callout"></div>
 
     <div class="card">
       <div class="row" style="margin-bottom:14px">
-        <label class="field">抽签编号 <input id="seeds" value="1,2,3,4,5" style="width:180px"></label>
-        <label class="field">预算档位 <input id="budgets" value="8,16,24" style="width:150px"></label>
-        <button class="primary sim" onclick="startBenchmark()">开始批量仿真</button>
+        <label class="field">抽签编号 <input id="seeds" oninput="syncBusyButtons()" value="1,2,3,4,5" style="width:180px"></label>
+        <label class="field">预算档位 <input id="budgets" oninput="syncBusyButtons()" value="8,16,24" style="width:150px"></label>
+        <button id="btnBenchmark" class="primary busy-lock" onclick="startBenchmark()">开始批量测量</button>
       </div>
-      <div id="benchmark"></div>
-      <p class="muted" style="margin:14px 0 0">平局阈值 |ΔL| ≤ 0.001；各预算取同一最大预算轨迹前缀。仿真数据不可替代真机结论。</p>
+      <p id="benchmarkCount" class="muted"></p><p id="benchmarkHelp" class="muted"></p><div id="benchmark"></div>
+      <p class="muted" style="margin:14px 0 0">平局阈值 |ΔL| ≤ 0.001；各预算取同一最大预算轨迹前缀，避免重复测量。真机保持光路、曝光与校准不变。</p>
     </div>
 
     <details class="box">
@@ -860,18 +854,23 @@ pre {
   <!-- 任务 6 -->
   <section id="reliability">
     <div class="page-head">
-      <h2>6. 测量可信度对照（仿真）</h2>
-      <p>保持 RGB [0.5, 0.5, 0.5] 与校准不变，依次测三组，观察测量条件漂移对读数的影响。</p>
+      <h2 id="reliabilityTitle">6. 测量可信度对照</h2>
+      <p>保持 RGB [0.5, 0.5, 0.5] 与校准不变，依次测三组，观察彩色透明塑料片对光谱的影响。固定色片改变光谱，不一定增加随机波动。</p>
     </div>
 
     <div class="card">
       <div class="row" style="margin-bottom:12px">
-        <button id="rel-baseline" onclick="post('/api/course/reliability',{stage:'baseline'})">① 正常测量 5 次</button>
-        <button id="rel-drift" onclick="post('/api/course/reliability',{stage:'drift'})">② 加入漂移 5 次</button>
-        <button id="rel-recovery" onclick="post('/api/course/reliability',{stage:'recovery'})">③ 恢复正常 5 次</button>
+        <label>色片 <select id="colorFilter"><option value="red">红色片</option><option value="green">绿色片</option><option value="blue">蓝色片</option></select></label>
+        <button id="rel-baseline" onclick="post('/api/course/reliability',{stage:'baseline',color_filter:el('colorFilter').value})">① 不放色片 · 测 5 次</button>
+        <button id="rel-drift" onclick="post('/api/course/reliability',{stage:'drift',color_filter:el('colorFilter').value})">② 加入色片 · 测 5 次</button>
+        <button id="rel-recovery" onclick="post('/api/course/reliability',{stage:'recovery'})">③ 移除色片 · 测 5 次</button>
+      </div>
+      <div id="reliabilityPrerequisite" class="callout" hidden>
+        <p>还未校准。先采集暗场与白光参考，再回到任务 6 开始测量。</p>
+        <button class="primary" onclick="show('quality')">去任务 2 校准 →</button>
       </div>
       <p id="reliabilityHelp" class="desc" style="margin:0 0 12px"></p>
-      <div id="reliabilityResults"></div>
+      <p id="reliabilitySource" class="muted"></p><div id="reliabilitySpectrum"></div><div id="reliabilityResults"></div>
       <div id="reliabilityLesson" class="callout" style="margin:14px 0 0"></div>
       <details>
         <summary>助教排障参考：超时与饱和</summary>
@@ -902,8 +901,8 @@ pre {
       <h3>本组结论（选填）</h3>
       <textarea id="conclusion" placeholder="一句话写下你们最关键的发现、一个不足和下一步改进……"></textarea>
       <div class="row" style="margin-top:12px">
-        <button class="primary" onclick="saveSettings()">保存结论</button>
-        <button onclick="post('/api/course/finish')">结束并归档本轮</button>
+        <button class="primary busy-lock" onclick="saveSettings()">保存结论</button>
+        <button class="busy-lock" onclick="finishRound()">结束并归档本轮</button>
         <button onclick="archives()">刷新历史记录</button>
       </div>
     </div>
@@ -953,7 +952,7 @@ const steps = [
   ['quality', '2', '校准质检'],
   ['experiment', '3', '调色比赛'],
   ['analysis', '4', '独立复测'],
-  ['study', '5', '多种子仿真'],
+  ['study', '5', '多种子对比'],
   ['reliability', '6', '测量可信度'],
   ['archive', '7', '保存归档']
 ];
@@ -988,6 +987,33 @@ function syncBusyButtons() {
   const busy = pendingPost || !!state?.active_job;
   document.querySelectorAll('.busy-lock').forEach(b => b.disabled = busy);
   document.querySelectorAll('.sim').forEach(b => b.disabled = state?.mode !== 'SIMULATED' || busy);
+  const cal = state?.calibration, c = state?.course, arena = state?.arena;
+  const quality = !!cal && c?.stability?.passed && c.stability.calibration_id === cal.id;
+  el('btnStab').disabled = busy || !cal;
+  el('btnToExp').disabled = busy || !quality;
+  const hasSearch = Object.values({human: arena?.human, ...arena?.ai_runs}).some(r => r?.best_x != null);
+  el('btnConfirm').disabled = busy || !quality || !hasSearch;
+  el('confirmHelp').textContent = busy ? '实验进行中，请等待完成或使用顶部停止按钮。' : !quality ? '请先完成任务 2 校准与质检。' : !hasSearch ? '请先在任务 3 完成至少一次人类或算法测量。' : '点击开始独立复测；使用各方法找到的最佳配方。';
+  const physical = state?.mode === 'PHYSICAL';
+  const supported = !physical || state?.capabilities?.physical_benchmark;
+  el('btnBenchmark').disabled = busy || !state?.connected || !supported || !quality || !arena?.round_id || c?.fault !== 'none';
+  el('seeds').disabled = el('budgets').disabled = busy;
+  el('studyTitle').textContent = '5. 多种子批量对比（' + (physical ? '真机实测' : '仿真') + '）';
+  el('btnBenchmark').textContent = physical ? '开始批量实测' : '开始批量仿真';
+  el('studyModeWarn').textContent = physical
+    ? '真机数据：每个候选配方均点亮灯并读取 AS7341。实验期间保持装置固定、不放色片；顶部可随时停止并关灯。'
+    : '仿真数据：使用独立模拟设备比较算法，不操作真实硬件。';
+  el('benchmarkHelp').textContent = busy ? '实验进行中，请等待完成或使用顶部停止按钮。' : !supported ? '当前服务尚未加载真机批量测量更新，请完成本轮并重启操作台。' : !state?.connected ? '请先连接设备。' : !quality ? '请先完成任务 2 校准与质检。' : !arena?.round_id ? '请先在任务 3 设置一个目标。' : c?.fault !== 'none' ? '请先解除故障并重新质检。' : '已就绪，可开始批量测量。';
+  try {
+    const seeds = parseIntList(el('seeds').value, '抽签编号');
+    const budgets = parseIntList(el('budgets').value, '预算档位');
+    if (seeds.length < 2 || seeds.length > 10 || new Set(seeds).size !== seeds.length || seeds.some(n => n >= 2**32) || new Set(budgets).size > 5 || budgets.some(n => n < 6 || n > 36)) throw Error('填写 2–10 个不同抽签编号（0–4294967295），预算 6–36、最多 5 档。');
+    el('benchmarkCount').textContent = `本次共 ${seeds.length * 2 * Math.max(...budgets)} 次${physical ? '真实测量' : '仿真采样'}（${seeds.length} 个编号 × 2 种算法 × 最大预算 ${Math.max(...budgets)}）；低预算复用前缀。`;
+  } catch (e) {
+    el('btnBenchmark').disabled = true;
+    el('benchmarkCount').textContent = e.message;
+  }
+  if (state) renderReliability(state);
 }
 
 function parseIntList(raw, label) {
@@ -1022,6 +1048,7 @@ function notice(text, error = false) {
 }
 
 async function post(path, body = {}) {
+  if (pendingPost && path !== '/api/led/off') return;
   pendingPost = true;
   syncBusyButtons();
   try {
@@ -1040,13 +1067,17 @@ async function post(path, body = {}) {
 }
 
 async function saveSettings() {
-  await post('/api/course/settings', {
+  return await post('/api/course/settings', {
     group: el('group').value,
-    seed: +el('seed').value,
+    seed: state?.course?.seed ?? 7,
     budget: +el('budget').value,
     prediction: el('prediction').value,
     conclusion: el('conclusion').value
   });
+}
+
+async function finishRound() {
+  if (await saveSettings()) await post('/api/course/finish');
 }
 
 function fmt(n) { return n == null ? '—' : Number(n).toFixed(4); }
@@ -1064,7 +1095,8 @@ async function refresh() {
     const c = state.course;
     if (initialized && prevBudget !== c.budget) el('budget').value = c.budget;
     if (!initialized) {
-      ['group', 'seed', 'budget', 'prediction', 'conclusion'].forEach(k => el(k).value = c[k]);
+      ['group', 'budget', 'prediction', 'conclusion'].forEach(k => el(k).value = c[k]);
+      if (c.reliability?.color_filter) el('colorFilter').value = c.reliability.color_filter;
       initialized = true;
     }
 
@@ -1097,12 +1129,11 @@ async function refresh() {
 
     syncBusyButtons();
     const locked = !!state.arena.round_id;
-    el('seed').disabled = el('budget').disabled = locked;
+    el('budget').disabled = locked;
     el('settingsHint').textContent = locked ? '当前轮次已锁定参数，到任务 7 结束本轮后可修改。' : '';
-    el('studyModeWarn').style.display = state.mode === 'SIMULATED' ? 'none' : 'block';
 
     renderQuality(cal, q);
-    el('initials').textContent = `当前算法预算：Random 与 BO 各 ${c.budget} 次（seed=${c.seed}）${locked ? ' · 本轮已锁定' : ' · 出题前可修改'}`;
+    el('initials').textContent = `当前算法预算：Random 与 BO 各 ${c.budget} 次${locked ? ' · 本轮已锁定' : ' · 出题前可修改'}`;
 
     const runs = { human: state.arena.human, ...state.arena.ai_runs };
     el('searchSummary').innerHTML = renderSearch(runs);
@@ -1110,10 +1141,10 @@ async function refresh() {
 
     const b = c.benchmark;
     el('benchmark').innerHTML = b
-      ? `<p class="muted" style="margin:0 0 10px">状态：<b>${safe(b.status)}</b>（已生成 ${b.runs.length} 条轨迹）</p>`
+      ? `<p class="muted" style="margin:0 0 10px">${b.mode === 'PHYSICAL' ? '真机实测' : '仿真'} · 状态：<b>${safe(({running:'进行中',completed:'已完成',interrupted:'已中断'})[b.status] || b.status)}</b> · ${b.completed_measurements ?? b.runs.reduce((n,r)=>n+r.rows.length,0)} / ${b.total_measurements ?? b.seeds.length*2*Math.max(...b.budgets)} 次（已生成 ${b.runs.length} 条轨迹）</p>`
         + table(['预算', 'BO 胜 / 平 / 负', 'Random 均值 / 最差', 'BO 均值 / 最差'],
           b.summary.map(s => [s.budget, `${s.bo_wins} / ${s.ties} / ${s.bo_losses}`, `${fmt(s.random.mean)} / ${fmt(s.random.worst)}`, `${fmt(s.bo.mean)} / ${fmt(s.bo.worst)}`]))
-      : '<p class="desc" style="margin:0">在仿真模式下完成任务 2 质检并在任务 3 设好目标后，点击上方按钮开始对比。</p>';
+      : '<p class="desc" style="margin:0">完成任务 2 质检并在任务 3 设好目标后，点击上方按钮开始对比。</p>';
 
     renderReliability(state);
     if (el('analysis').classList.contains('active')) plot(state.arena);
@@ -1180,40 +1211,64 @@ function renderConfirmations(reports) {
 }
 
 function renderReliability(s) {
-  const exp = s.course.reliability, stages = exp?.stages || {};
-  const valid = !!exp && exp.calibration_id === s.calibration?.id;
+  const exp = s.course.reliability;
+  const valid = !!exp && exp.calibration_id === s.calibration?.id && (exp.mode || 'SIMULATED') === s.mode;
+  const stages = valid ? exp.stages : {};
   const busy = pendingPost || !!s.active_job, sim = s.mode === 'SIMULATED';
   const baseDone = valid && stages.baseline?.status === 'completed';
   const driftDone = valid && stages.drift?.status === 'completed';
   const recDone = valid && stages.recovery?.status === 'completed';
 
-  el('rel-baseline').disabled = !sim || busy || !s.calibration;
-  el('rel-drift').disabled = !sim || busy || !baseDone;
-  el('rel-recovery').disabled = !sim || busy || !driftDone;
+  const connected = !!s.connected;
+  el('reliabilityTitle').textContent = '6. 测量可信度对照（' + (sim ? '仿真' : '真机实测') + '）';
+  el('reliabilitySource').textContent = sim
+    ? '仿真数据 · 教学示意透过率模型，非实物测量值。三组光谱使用相同纵轴。'
+    : '真机数据 · 直接采集 AS7341 八通道读数。颜色选择仅记录色片名称，不改变测量数值。保持灯、传感器、曝光与遮光不变，只放入或移除色片，三组之间不要重新校准。每组完成后自动关灯。';
+  el('rel-baseline').textContent = sim ? '① 不放色片 · 测 5 次' : '① 已移开色片 · 实测 5 次';
+  el('rel-drift').textContent = sim ? '② 加入色片 · 测 5 次' : '② 已放好色片 · 实测 5 次';
+  el('rel-recovery').textContent = sim ? '③ 移除色片 · 测 5 次' : '③ 已移除色片 · 实测 5 次';
+  el('reliabilityPrerequisite').hidden = !!s.calibration;
+  el('colorFilter').disabled = busy;
+  el('rel-baseline').disabled = !connected || busy || !s.calibration;
+  el('rel-drift').disabled = !connected || busy || !baseDone;
+  el('rel-recovery').disabled = !connected || busy || !driftDone;
 
   // Single primary CTA progression on Task 6
-  el('rel-baseline').classList.toggle('primary', sim && !!s.calibration && !baseDone);
-  el('rel-drift').classList.toggle('primary', sim && baseDone && !driftDone);
-  el('rel-recovery').classList.toggle('primary', sim && driftDone && !recDone);
+  el('rel-baseline').classList.toggle('primary', connected && !!s.calibration && !baseDone);
+  el('rel-drift').classList.toggle('primary', connected && baseDone && !driftDone);
+  el('rel-recovery').classList.toggle('primary', connected && driftDone && !recDone);
 
-  el('reliabilityHelp').textContent = !sim
-    ? '此对照实验仅在仿真模式进行。'
+  el('reliabilityHelp').textContent = !connected
+    ? '设备未连接，请检查 USB 和串口，再重新连接、校准。'
     : !s.calibration
       ? '请先到任务 2 采集暗场与白光参考。'
       : !valid && exp
-        ? '校准已更新，请从 ① 正常测量重新开始。'
-        : '按 ① → ② → ③ 顺序执行，对比同一配方在漂移前后的 5 次读数。';
+        ? '校准已更新，请从 ① 不放色片重新开始。'
+        : busy ? '正在测量，请等待完成；需要中断时点击顶部“停止并关灯”。'
+        : !baseDone ? (sim ? '先点 ① 不放色片，自动采集 5 次。仿真无需操作实物。' : '先取出色片，保持光路固定，然后点 ①，点亮真实灯光并采集 5 次。')
+        : !driftDone ? (sim ? '选择色片颜色，再点 ② 加入色片，自动采集 5 次。' : '将色片放在灯与传感器之间，选好颜色标签，放稳后点 ② 实测。')
+        : !recDone ? (sim ? '再点 ③ 移除色片，观察光谱能否恢复。' : '手动移除色片，保持其他条件不变，再点 ③ 实测。')
+        : '三组已完成。可更换颜色后重测 ② → ③，或点 ① 重新开始。';
 
+  const means = ['baseline', 'drift', 'recovery'].map(k => stages[k]?.mean_raw);
+  const ymax = Math.max(1, ...means.filter(Boolean).flat()) * 1.1;
+  const colors = ['#059669', '#ea580c', '#2563eb'];
+  el('reliabilitySpectrum').innerHTML = !means.some(Boolean) ? '<p class="muted">完成第一组测量后，这里显示八通道平均光谱。</p>' : `<svg viewBox="0 0 720 220" role="img" aria-label="三组八通道平均原始光谱" style="width:100%;max-height:260px">
+    <text x="12" y="16" font-size="12">平均原始读数（同尺度，纵轴上限 ${Math.round(ymax)}）</text>
+    <text x="410" y="16" font-size="11" fill="#059669">① 不放色片</text><text x="510" y="16" font-size="11" fill="#ea580c">② 加入色片</text><text x="610" y="16" font-size="11" fill="#2563eb">③ 移除色片</text>
+    ${[415,445,480,515,555,590,630,680].map((nm,i)=>`<text x="${45+i*90}" y="210" text-anchor="middle" font-size="12">${nm}nm</text>`).join('')}
+    ${means.map((row,k)=>row ? row.map((v,i)=>`<rect x="${20+i*90+k*17}" y="${185-v/ymax*150}" width="15" height="${v/ymax*150}" fill="${colors[k]}"><title>${['不放色片','加入色片','移除色片'][k]} ${Math.round(v)}</title></rect>`).join('') : '').join('')}
+    </svg>`;
   const sums = Object.values(stages).flatMap(r => r.rows.map(row => row.raw.reduce((a, b) => a + b, 0)));
   const max = Math.max(1, ...sums) * 1.18;
   el('reliabilityResults').innerHTML = '<div class="rel-grid">' + [
-    ['baseline', '① 正常条件', '#059669'],
-    ['drift', '② 模拟漂移', '#ea580c'],
-    ['recovery', '③ 恢复正常', '#2563eb']
+    ['baseline', '① 不放色片', '#059669'],
+    ['drift', '② 加入' + ({red:'红色片',green:'绿色片',blue:'蓝色片'}[valid ? exp?.color_filter : null] || '色片'), '#ea580c'],
+    ['recovery', '③ 移除色片', '#2563eb']
   ].map(([key, title, color]) => {
     const r = stages[key];
     const values = (r?.rows || []).map(row => row.raw.reduce((a, b) => a + b, 0));
-    const st = r?.status === 'completed' ? (r.passed ? '通过质检' : '未通过质检') : r?.status === 'running' ? '采集中…' : r?.status === 'interrupted' ? '已中断' : '等待测量';
+    const st = r?.status === 'completed' ? (r.passed ? '重复测量稳定' : '重复测量波动较大') : r?.status === 'running' ? '采集中…' : r?.status === 'interrupted' ? '已中断' : '等待测量';
     return `<div class="rel-card" style="--bar-color:${color}">
       <h4>${title}</h4>
       <div class="reading-bars">${Array.from({ length: 5 }, (_, i) =>
@@ -1225,10 +1280,10 @@ function renderReliability(s) {
   }).join('') + '</div>';
 
   el('reliabilityLesson').textContent = recDone
-    ? '结论提示：第二组 RGB 未变但读数显著波动，说明测量条件不稳定会直接污染结论；真实实验若移动装置，必须重新校准、质检并新建目标。'
+    ? '结论提示：固定色片会改变各波段强弱，但重复读数仍可能稳定。移除后应接近原始光谱；稳定不代表测量条件没有改变。完成对照后，如需继续调色比赛，请移除色片并重新执行任务 2 校准与质检。'
     : driftDone
-      ? '对比第一组与第二组：配方相同，条件漂移导致波动超标。请点 ③ 检查恢复后的重复性。'
-      : '柱高表示单次 8 通道总读数（同尺度）；正式质检按 8 通道相对波动 < 5% 判定。';
+      ? '对比第一组与第二组：配方相同，色片改变了光谱；请同时观察波动指标。点 ③ 检查移除后能否恢复。'
+      : '柱高表示单次 8 通道总读数（同尺度）；下方百分比表示 8 通道相对波动，< 5% 表示重复测量稳定。本对照不覆盖任务 2 的质检结果。';
 }
 
 function plot(arena) {

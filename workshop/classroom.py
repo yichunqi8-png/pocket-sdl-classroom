@@ -17,6 +17,14 @@ from pocket_sdl.simulated import SimDevice
 from workshop.engine import WorkshopEngine, REPO_ROOT, _utc_iso, snap_x
 
 
+# Illustrative transmission only; replace with measured films for physical comparison.
+COLOR_FILTERS = {
+    'red': [.08, .08, .10, .14, .25, .60, .88, .92],
+    'green': [.10, .20, .65, .90, .85, .40, .12, .08],
+    'blue': [.90, .90, .70, .30, .12, .08, .06, .05],
+}
+
+
 class ClassroomEngine(WorkshopEngine):
     def __init__(self, *args, data_dir=None, **kwargs):
         self.course_lock = threading.RLock()
@@ -64,6 +72,7 @@ class ClassroomEngine(WorkshopEngine):
         with self._state_lock:
             state = super().get_state()
             state['course'] = copy.deepcopy(self.course)
+            state['capabilities'] = {'physical_benchmark': True}
             return state
 
     def connect(self):
@@ -75,6 +84,7 @@ class ClassroomEngine(WorkshopEngine):
                 self.arena = self._empty_arena()
                 self.course['stability'] = None
                 self.course['confirmations'] = []
+                self.course['benchmark'] = None
         return super().connect()
 
     def calibrate(self):
@@ -86,29 +96,36 @@ class ClassroomEngine(WorkshopEngine):
             self.arena = self._empty_arena()
             self.course['stability'] = None
             self.course['confirmations'] = []
+            self.course['benchmark'] = None
         try:
             return super().calibrate()
         finally:
             with self._device_lock:
                 if self.device: self.device.off()
 
-    def _measure_raw(self, x, turn_off_after=False):
-        if self._cancel_job.is_set() and self.active_job is not None:
+    def _measure_raw(self, x, turn_off_after=False, color_filter=None, reliability_stage=None, benchmark_context=None):
+        if (self._cancel_job.is_set() or self._stop_all.is_set()) and self.active_job is not None:
             raise LabError('CANCELLED', '已停止本次实验')
         used, raw, ms = super()._measure_raw(x, turn_off_after)
         if self.mode == 'SIMULATED' and self.course['fault'] == 'drift':
             raw = np.rint(raw * (0.65 if self.device.sample_count % 2 else 1.35))
-        if self._ready:
-            # Include calibration, stability, target and confirmation raw readings, not just search rows.
-            with self._state_lock:
-                job = self.active_job
-                round_id = self.arena['round_id']
-            with self._save_lock:
-                with (self.data_dir / (self.session_id + '-raw.jsonl')).open('a', encoding='utf-8') as f:
-                    f.write(json.dumps({'ts': _utc_iso(), 'mode': self.mode, 'job': job,
-                                        'round_id': round_id, 'x': used,
-                                        'raw': raw.tolist(), 'duration_ms': ms}) + '\n')
+        if self.mode == 'SIMULATED' and color_filter is not None:
+            dark = np.asarray(self.calibration['dark_mean'])
+            raw = np.rint(dark + np.maximum(raw - dark, 0) * COLOR_FILTERS[color_filter])
+        self._record_raw(used, raw, ms, color_filter=color_filter or 'none',
+                         reliability_stage=reliability_stage, **(benchmark_context or {}))
         return used, raw, ms
+
+    def _record_raw(self, x, raw, ms, **metadata):
+        if not self._ready:
+            return
+        with self._state_lock:
+            record = {'ts': _utc_iso(), 'mode': self.mode, 'job': self.active_job,
+                      'round_id': self.arena['round_id'], 'x': x,
+                      'raw': raw.tolist(), 'duration_ms': ms, **metadata}
+        with self._save_lock:
+            with (self.data_dir / (self.session_id + '-raw.jsonl')).open('a', encoding='utf-8') as f:
+                f.write(json.dumps(record) + '\n')
 
     def _record_error(self, error):
         if getattr(error, 'code', '') in ('SATURATED', 'SERIAL_TIMEOUT', 'DISCONNECTED', 'DEVICE_ERROR'):
@@ -145,6 +162,7 @@ class ClassroomEngine(WorkshopEngine):
         with self._state_lock:
             self.arena = self._empty_arena()
             self.course['confirmations'] = []
+            self.course['benchmark'] = None
         self.publish('state', self.get_state())
         return {'archived': True}
 
@@ -159,6 +177,7 @@ class ClassroomEngine(WorkshopEngine):
         with self._state_lock:
             self.arena['seed'] = self.course['seed']
             self.course['confirmations'] = []
+            self.course['benchmark'] = None
             cfg = copy.deepcopy(self.config)
             cfg['seed'] = self.course['seed']
             cfg['measurement']['budget'] = self.course['budget']
@@ -247,10 +266,14 @@ class ClassroomEngine(WorkshopEngine):
                     if report['status'] == 'running': report['status'] = 'interrupted'
         return self._start_course_job('stability', work)
 
-    def reliability_start(self, stage='baseline'):
-        if self.mode != 'SIMULATED':
-            raise LabError('SIMULATION_ONLY', '测量可信度对照仅在仿真中进行，不移动真实装置')
+    def reliability_start(self, stage='baseline', color_filter='red'):
+        if self.mode not in ('SIMULATED', 'PHYSICAL'):
+            raise LabError('INVALID_STATE', '未知设备模式')
+        if not self.device_connected:
+            raise LabError('DISCONNECTED', '设备未连接，请检查连接后重新校准')
         self._assert_no_active_job()
+        if color_filter not in COLOR_FILTERS:
+            raise LabError('INVALID_INPUT', '请选择红、绿或蓝色片')
         if stage not in ('baseline', 'drift', 'recovery'):
             raise LabError('INVALID_INPUT', '未知对照步骤')
         with self._state_lock:
@@ -260,7 +283,7 @@ class ClassroomEngine(WorkshopEngine):
             experiment = self.course.get('reliability')
             if stage != 'baseline':
                 prior = 'baseline' if stage == 'drift' else 'drift'
-                if not experiment or experiment['calibration_id'] != cal['id']:
+                if not experiment or experiment['calibration_id'] != cal['id'] or experiment.get('mode', 'SIMULATED') != self.mode:
                     raise LabError('QUALITY_GATE', '校准已变化，请从正常测量重新开始')
                 if experiment['stages'].get(prior, {}).get('status') != 'completed':
                     raise LabError('INVALID_STATE', '请先完成上一步对照')
@@ -268,22 +291,28 @@ class ClassroomEngine(WorkshopEngine):
         with self._state_lock:
             if stage == 'baseline':
                 experiment = {'calibration_id': cal['id'], 'x': [.5, .5, .5],
-                              'created_at': _utc_iso(), 'stages': {}}
+                              'created_at': _utc_iso(), 'stages': {}, 'color_filter': color_filter,
+                              'mode': self.mode,
+                              'model': 'illustrative-transmission-v1' if self.mode == 'SIMULATED' else None}
                 self.course['reliability'] = experiment
             elif stage == 'drift':
+                experiment['color_filter'] = color_filter
                 experiment['stages'].pop('recovery', None)
             report = {'calibration_id': cal['id'], 'x': experiment['x'],
                       'rows': [], 'status': 'running', 'passed': False, 'limit': .05}
             experiment['stages'][stage] = report
-            self.course['stability'] = report
-            self.course['fault'] = 'drift' if stage == 'drift' else 'none'
+            report['mode'] = self.mode
+            report['color_filter'] = experiment['color_filter'] if stage == 'drift' else 'none'
+            self.course['fault'] = 'none'
+            measurement_filter = experiment['color_filter'] if stage == 'drift' else None
             point = list(experiment['x'])
-        with self._device_lock:
-            self.device.fail_at = self.device.saturated_at = None
+        if self.mode == 'SIMULATED':
+            with self._device_lock:
+                self.device.fail_at = self.device.saturated_at = None
         def work():
             try:
                 for _ in range(5):
-                    _, raw, ms = self._measure_raw(point)
+                    _, raw, ms = self._measure_raw(point, color_filter=measurement_filter, reliability_stage=stage)
                     with self._state_lock:
                         report['rows'].append({'raw': raw.tolist(), 'duration_ms': ms})
                     self.publish('state', self.get_state())
@@ -292,12 +321,12 @@ class ClassroomEngine(WorkshopEngine):
                     rows_raw = [r['raw'] for r in report['rows']]
                 stats = relative_stability(rows_raw, cal['dark_mean'])
                 with self._state_lock:
-                    report.update(rms_relative=float(stats['rms_relative']),
+                    report.update(mean_raw=np.mean(rows_raw, axis=0).tolist(),
+                                  rms_relative=float(stats['rms_relative']),
                                   passed=bool(stats['rms_relative'] < .05), status='completed')
             finally:
-                # Drift is confined to this experiment; it cannot silently affect later searches.
+                # Film is confined to this experiment; it cannot affect subsequent searches.
                 with self._state_lock:
-                    self.course['fault'] = 'none'
                     if report['status'] == 'running': report['status'] = 'interrupted'
         return self._start_course_job('measurement_reliability', work)
 
@@ -354,34 +383,42 @@ class ClassroomEngine(WorkshopEngine):
         return {'fault': kind}
 
     def benchmark_start(self, seeds=None, budgets=None):
-        if self.mode != 'SIMULATED':
-            raise LabError('SIMULATION_ONLY', '多种子批量研究只使用仿真，真机请逐轮实验')
+        if self.mode not in ('SIMULATED', 'PHYSICAL'):
+            raise LabError('INVALID_STATE', '未知设备模式')
+        if not self.device_connected:
+            raise LabError('DISCONNECTED', '设备未连接，请重新连接并校准')
         self._require_quality()
         self._assert_no_active_job()
-        seeds = [int(s) for s in (seeds or [1, 2, 3, 4, 5])]
-        budgets = sorted(set(int(b) for b in (budgets or [8, 16, 24])))
+        seeds = [int(s) for s in ([1, 2, 3, 4, 5] if seeds is None else seeds)]
+        budgets = sorted(set(int(b) for b in ([8, 16, 24] if budgets is None else budgets)))
         if not 2 <= len(seeds) <= 10 or len(set(seeds)) != len(seeds) or any(s < 0 or s >= 2**32 for s in seeds):
             raise LabError('INVALID_INPUT', '提供 2–10 个不同的非负种子')
         if not budgets or len(budgets)>5 or any(b < 6 or b > 36 for b in budgets):
             raise LabError('INVALID_INPUT', '预算 6–36，最多 5 档')
+        self.checkpoint('before_benchmark')
         with self._state_lock:
             if self.course['fault'] != 'none' or not self.arena['round_id']:
                 raise LabError('INVALID_STATE', '请解除故障并建立固定目标')
             cal, target = copy.deepcopy(self.calibration), copy.deepcopy(self.arena['target_raw'])
-            report = {'mode': 'SIMULATED', 'status': 'running', 'seeds': seeds, 'budgets': budgets,
+            report = {'id': uuid.uuid4().hex[:8], 'mode': self.mode, 'status': 'running',
+                      'calibration_id': cal['id'], 'completed_measurements': 0,
+                      'total_measurements': len(seeds) * 2 * max(budgets), 'seeds': seeds, 'budgets': budgets,
                       'round_id': self.arena['round_id'], 'target_raw': target, 'runs': [], 'summary': [],
-                      'tie_tolerance': 0.001, 'policy': '各预算取同一最大预算轨迹前缀；每种子两算法测量噪声使用相同独立种子'}
+                      'tie_tolerance': 0.001, 'policy': '各预算取同一最大预算轨迹前缀；两算法使用相同初始候选点。' +
+                      ('仿真测量噪声使用相同独立种子。' if self.mode == 'SIMULATED' else '真机逐次采集，不复制读数；不同种子交替两算法的执行顺序。')}
             self.course['benchmark'] = report
         def work():
             try:
-                for seed in seeds:
-                    for strategy in ['random', 'bo']:
+                for seed_index, seed in enumerate(seeds):
+                    strategies = ['bo', 'random'] if self.mode == 'PHYSICAL' and seed_index % 2 else ['random', 'bo']
+                    for strategy in strategies:
                         cfg = copy.deepcopy(self.config)
                         cfg['seed'] = seed
                         cfg['measurement']['budget'] = max(budgets)
-                        cfg['simulation']['seed'] = seed + 100000
+                        if self.mode == 'SIMULATED':
+                            cfg['simulation']['seed'] = seed + 100000
                         planner = CandidatePlanner(cfg, strategy)
-                        dev = SimDevice(cfg)
+                        dev = SimDevice(cfg) if self.mode == 'SIMULATED' else None
                         run = {'seed': seed, 'strategy': strategy, 'rows': []}
                         with self._state_lock:
                             report['runs'].append(run)
@@ -391,14 +428,25 @@ class ClassroomEngine(WorkshopEngine):
                                 if self._cancel_job.is_set() or self._stop_all.is_set():
                                     raise LabError('CANCELLED', '批量研究已停止')
                                 x = GRID[planner.choose(i, xs, ys)].tolist()
-                                raw = dev.measure(x)
+                                context = {'benchmark_id': report['id'], 'seed': seed,
+                                           'strategy': strategy, 'iteration': i+1}
+                                if dev is None:
+                                    _, raw, ms = self._measure_raw(x, turn_off_after=True, benchmark_context=context)
+                                else:
+                                    raw = dev.measure(x)
+                                    self._record_raw(x, raw, 0, **context)
                                 loss = float(spectral_loss(raw, cal['dark_mean'], cal['reference_scale'], target))
                                 xs.append(x); ys.append(loss)
                                 with self._state_lock:
                                     run['rows'].append({'iteration': i+1, 'x': x, 'raw': raw.tolist(), 'loss': loss, 'best_so_far': min(ys)})
+                                    report['completed_measurements'] += 1
+                                if self.mode == 'PHYSICAL':
+                                    self.publish('state', self.get_state())
                             self.publish('state', self.get_state())
                         finally:
-                            dev.close()
+                            if dev is not None: dev.close()
+                if self._cancel_job.is_set() or self._stop_all.is_set():
+                    raise LabError('CANCELLED', '批量研究已停止')
                 with self._state_lock:
                     for budget in budgets:
                         values = {s: [r['rows'][budget-1]['best_so_far'] for r in report['runs'] if r['strategy']==s] for s in ['random','bo']}
@@ -409,7 +457,7 @@ class ClassroomEngine(WorkshopEngine):
             finally:
                 with self._state_lock:
                     if report['status'] == 'running': report['status'] = 'interrupted'
-        return self._start_course_job('simulation_benchmark', work)
+        return self._start_course_job('physical_benchmark' if self.mode == 'PHYSICAL' else 'simulation_benchmark', work)
 
     def archive_list(self):
         result=[]
@@ -428,10 +476,10 @@ class ClassroomEngine(WorkshopEngine):
             if kind == 'jsonl': return path.with_suffix('.jsonl').read_bytes()
             if kind == 'csv':
                 out=io.StringIO(); writer=csv.writer(out)
-                writer.writerow(['timestamp','mode','job','round_id','R','G','B',*[f'F{i}' for i in range(1,9)],'duration_ms'])
+                writer.writerow(['timestamp','mode','job','round_id','R','G','B',*[f'F{i}' for i in range(1,9)],'duration_ms','color_filter','reliability_stage','benchmark_id','seed','strategy','iteration'])
                 raw_path=self.data_dir/(session_id+'-raw.jsonl')
                 if raw_path.exists():
                     for line in raw_path.read_text(encoding='utf-8').splitlines():
-                        r=json.loads(line); writer.writerow([r['ts'],r['mode'],r['job'],r['round_id'],*r['x'],*r['raw'],r['duration_ms']])
+                        r=json.loads(line); writer.writerow([r['ts'],r['mode'],r['job'],r['round_id'],*r['x'],*r['raw'],r['duration_ms'],r.get('color_filter','none'),r.get('reliability_stage') or '',r.get('benchmark_id',''),r.get('seed',''),r.get('strategy',''),r.get('iteration','')])
                 return ('\ufeff'+out.getvalue()).encode('utf-8')
         raise LabError('INVALID_INPUT', '格式应为 json/jsonl/csv')
