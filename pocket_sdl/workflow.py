@@ -143,12 +143,15 @@ def measure_once(dev, ledger, x, phase, iteration=None):
     x = list(x)
     started = time.monotonic()
     attempt = {"timestamp_utc": timestamp(), "phase": phase, "x": x, "iteration": iteration, "status": "error", "raw": None}
+    raw = None
     try:
         raw = dev.measure(x)
         raw = validate_raw(raw, dev.config["sensor"]["saturation_raw_exclusive"])
     except BaseException as error:
         if isinstance(error, KeyboardInterrupt):
             raise
+        if isinstance(error, LabError) and error.code == "SATURATED" and raw is not None:
+            attempt["raw"] = np.asarray(raw, dtype=float).astype(int).tolist()
         attempt.update(error={"code": getattr(error, "code", type(error).__name__), "message": str(error)})
         attempt["duration_ms"] = round((time.monotonic() - started) * 1000, 3)
         ledger.attempts(attempt)

@@ -394,6 +394,8 @@ class PicoSpectroDevice:
             self._dev = None
             self._connected = False
             self._status = "Offline"
+            self._calibration = None
+            self._last_loss = None
             self._last_rgb = [0.0, 0.0, 0.0]
             self._last_led_rgb = [0, 0, 0]
             if dev is not None:

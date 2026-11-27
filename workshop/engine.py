@@ -185,6 +185,12 @@ class WorkshopEngine:
         self._stop_all.set()
         self._cancel_job.set()
         self._live_streaming.clear()
+        with self._sub_lock:
+            for q in list(self._subscribers):
+                try:
+                    q.put_nowait(None)
+                except queue.Full:
+                    pass
         with self._device_lock:
             self._close_device_unlocked()
 

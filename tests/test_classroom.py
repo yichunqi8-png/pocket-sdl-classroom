@@ -123,4 +123,32 @@ class ClassroomTests(unittest.TestCase):
                     self.assertEqual(cm.exception.code,403)
         finally:
             for s in servers:s.shutdown();s.server_close()
+
+    def test_new_target_jsonl_has_no_stale_seed_and_concurrent_state_reads(self):
+        self.prepare()
+        sid = self.e.session_id
+        records = [json.loads(line) for line in self.e.export(sid, 'jsonl').decode('utf-8').splitlines()]
+        target_events = [r for r in records if r['event'] == 'arena_target']
+        self.assertEqual(len(target_events), 1)
+        self.assertEqual(target_events[0]['data']['seed'], 11)
+        self.assertEqual(len(target_events[0]['data']['common_initial_x']), 4)
+
+        errors = []
+        stop = threading.Event()
+        def reader():
+            while not stop.is_set():
+                try:
+                    self.e.get_state()
+                    self.e.snapshot()
+                except Exception as exc:
+                    errors.append(exc)
+        t = threading.Thread(target=reader, daemon=True)
+        t.start()
+        try:
+            self.e.benchmark_start([1, 2, 3], [6, 8])
+            self.wait()
+        finally:
+            stop.set()
+            t.join(5)
+        self.assertEqual(errors, [])
 if __name__=='__main__':unittest.main()

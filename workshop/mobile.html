@@ -235,10 +235,14 @@
       }
     });
 
+    function escapeHtml(text) {
+      return String(text || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
     function updateMyTask(q) {
       if (!myTaskId || !q) return;
       if (q.current && q.current.id === myTaskId) {
-        myTaskStatus.innerHTML = `🔬 <strong>Pico 正在实测复刻你的「${q.current.color_name}」</strong><br/>当前进度：${q.current.steps || 0} / ${q.current.budget} 步 · 当前最高相似度：<strong style="color:#34d399">${q.current.best_score || "--"}%</strong>`;
+        myTaskStatus.innerHTML = `🔬 <strong>Pico 正在实测复刻你的「${escapeHtml(q.current.color_name)}」</strong><br/>当前进度：${q.current.steps || 0} / ${q.current.budget} 步 · 当前最高相似度：<strong style="color:#34d399">${q.current.best_score || "--"}%</strong>`;
         return;
       }
       const pos = (q.pending || []).findIndex(item => item.id === myTaskId);

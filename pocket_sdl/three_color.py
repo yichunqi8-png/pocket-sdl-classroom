@@ -55,19 +55,28 @@ class ThreeColorSession:
             self.cleanup();raise
         return result
 
-    def save(self):
+    def save(self, expected_rows=3):
         try:
-            if len(self.report.get('rows',[]))!=3: raise RuntimeError('需要完整三组读数')
+            if not self.path: raise RuntimeError('先连接并开始记录')
+            rows = self.report.get('rows', [])
+            if expected_rows is not None and len(rows) != expected_rows:
+                raise RuntimeError(f'需要完整 {expected_rows} 组读数（当前 {len(rows)} 组）')
+            if not rows:
+                raise RuntimeError('没有可保存的读数')
             with (self.path/'readings.csv').open('w',newline='',encoding='utf-8-sig') as f:
                 writer=csv.writer(f);writer.writerow(['mode','time','r','g','b','415','445','480','515','555','590','630','680'])
-                for row in self.report['rows']:writer.writerow([self.report['mode'],row['timestamp'],*row['rgb'],*row['result']['data']['raw']])
+                for row in rows:writer.writerow([self.report['mode'],row['timestamp'],*row['rgb'],*row['result']['data']['raw']])
             self.report['status']='measurements_saved';self._write()
-            return {'success':True,'data':{'directory':str(self.path.resolve()),'rows':3}}
+            return {'success':True,'data':{'directory':str(self.path.resolve()),'rows':len(rows)}}
         except Exception:
             self.cleanup();raise
 
     def finish(self):
-        errors=self.cleanup();self.report['cleanup_errors']=errors
+        errors=self.cleanup()
+        if not self.path:
+            if errors:raise RuntimeError(str(errors))
+            return {'success':False,'data':{'directory':None,'note':'尚未开始三色记录，已执行安全清理'}}
+        self.report['cleanup_errors']=errors
         self.report['status']='completed' if not errors and self.report.get('status')=='measurements_saved' else 'failed'
         self._write()
         if errors:raise RuntimeError(str(errors))
