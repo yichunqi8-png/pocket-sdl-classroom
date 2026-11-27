@@ -1,97 +1,1479 @@
-<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pocket SDL · 课程工作台</title>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pocket SDL · 课程工作台</title>
 <style>
-:root{color-scheme:dark;--bg:#0b0f17;--card:#131a26;--muted:#93a1b8;--green:#34d399;--cyan:#38bdf8;--line:rgba(255,255,255,.1);--mono:ui-monospace,"SFMono-Regular",Menlo,monospace}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 85% 0,#142038 0,transparent 55%),var(--bg);color:#eef2f9;font:14px/1.65 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}header{padding:14px 24px;border-bottom:1px solid var(--line);display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:rgba(13,18,28,.94);backdrop-filter:blur(16px)}.brand{display:flex;align-items:center;gap:12px}.brand-orb{width:32px;height:32px;border-radius:50%;background:conic-gradient(#7c3aed,#2563eb,#10b981,#facc15,#ef4444,#7c3aed);box-shadow:0 0 24px #38bdf844,inset 0 0 9px #fff7;border:5px solid #192233}h1{font-size:19px;letter-spacing:.3px;line-height:1.4;margin:0}h1 small{display:block;font-size:10px;letter-spacing:2.2px;font-weight:500;color:var(--muted)}h2{font-size:21px;letter-spacing:.3px;margin:0 0 14px}h3{font-size:16px;margin:0 0 14px}p{margin:10px 0 16px}small,.muted{color:var(--muted);font-size:12px}button,input,select,textarea{font:inherit;border:1px solid var(--line);border-radius:10px;padding:9px 14px;background:#192233;color:inherit}button{font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}button:hover:not(:disabled){border-color:#ffffff40;background:#233047;transform:translateY(-1px)}button:active{transform:translateY(0)}button:disabled{opacity:.45;cursor:not-allowed}button.primary{background:linear-gradient(135deg,#0284c7,#2563eb);border-color:#7dd3fc66;box-shadow:0 4px 16px #0284c722}button.primary:hover:not(:disabled){background:linear-gradient(135deg,#0ea5e9,#3b82f6)}button.danger{background:#ef444425;color:#fecaca;border-color:#f8717166}button:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}a{color:#7dd3fc;text-decoration:none}a:hover{text-decoration:underline}nav{display:flex;flex-wrap:wrap;gap:4px;padding:12px 24px 0;border-bottom:1px solid var(--line);background:#0d121c90;position:sticky;top:0;z-index:20;backdrop-filter:blur(16px)}nav button{white-space:nowrap;border:1px solid transparent;border-bottom:0;background:transparent;color:var(--muted);border-radius:10px 10px 0 0;padding:11px 17px;font-size:14px}nav button.selected{background:linear-gradient(#20314a,#131a26);color:#eef2f9;border-color:var(--line);box-shadow:inset 0 2px #38bdf8}main{max-width:1520px;margin:0 auto;padding:20px 24px 40px}section{display:none}section.active{display:block;animation:enter .2s ease-out}@keyframes enter{from{opacity:.6;transform:translateY(5px)}to{opacity:1;transform:none}}.card{background:linear-gradient(135deg,#171f2d,#121923);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:18px;box-shadow:0 12px 32px #0004,inset 0 1px #ffffff04;overflow:hidden}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}label{display:block;margin:10px 0;color:#c2cddd;font-size:13px}input,textarea,select{background:#0c131e;box-shadow:inset 0 2px 6px #0003}input:focus,textarea:focus{outline:0;border-color:#38bdf899;box-shadow:0 0 0 3px #38bdf812}input[type=number]{width:110px;font-family:var(--mono)}textarea{width:100%;min-height:100px;resize:vertical;line-height:1.7}table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;border-bottom:1px solid #ffffff0b;padding:13px 12px}th{color:var(--muted);font-size:11px;letter-spacing:.5px;font-weight:600;background:#0a111b55}td{font-variant-numeric:tabular-nums}tr:last-child td{border-bottom:0}tr:hover td{background:#38bdf805}pre{white-space:pre-wrap;word-break:break-word;max-height:400px;overflow:auto;font:12px/1.7 var(--mono);background:#0a111b;padding:18px;border-radius:12px;color:#a7b8d0}#message{position:fixed;bottom:20px;right:24px;max-width:520px;z-index:40;border:1px solid #ffffff25;box-shadow:0 10px 40px #0008;border-radius:12px;padding:14px 20px;display:none;cursor:pointer}#mode,#job{font:11px var(--mono);border:1px solid var(--line);padding:7px 12px;border-radius:999px;color:#fde68a;background:#f59e0b13}#job{color:#93a1b8;background:#192233;margin-left:auto}iframe{display:block;width:100%;min-height:760px;height:100vh;border:0;background:transparent}canvas{width:100%;height:300px;background:linear-gradient(#0e1520,#0b111b);border:1px solid #ffffff08;border-radius:14px}details{margin:16px 0;border-top:1px solid var(--line);padding-top:16px}summary{cursor:pointer;color:#7dd3fc}img.wiring{width:100%;background:white;border-radius:12px;margin-top:15px}#qr{width:228px;background:white;padding:12px;border-radius:16px;box-shadow:0 0 45px #38bdf812}.badge{color:var(--green)}#network{font:14px var(--mono);color:#7dd3fc}.agenda td:first-child{white-space:nowrap;font-family:var(--mono);color:#7dd3fc}.eyebrow{font:11px var(--mono);letter-spacing:2px;color:var(--cyan);margin-bottom:14px}.hero{position:relative;padding:36px;background:radial-gradient(ellipse at 90% 60%,#14577c45,transparent 60%),linear-gradient(125deg,#182333,#101723);display:grid;grid-template-columns:1.3fr 1fr;gap:30px;align-items:center}.hero h2{font-size:30px;line-height:1.5;margin:0 0 16px}.hero p{max-width:620px;color:#a4b4c9}.spectrum-art{display:flex;align-items:flex-end;gap:10px;height:180px;padding:20px 20px 10px;border-bottom:1px solid #ffffff15;position:relative}.spectrum-art i{flex:1;min-width:10px;border-radius:8px 8px 2px 2px;background:linear-gradient(0deg,color-mix(in srgb,var(--c) 15%,transparent),var(--c));height:var(--h);box-shadow:0 0 24px color-mix(in srgb,var(--c) 12%,transparent);opacity:.85}.spectrum-caption{display:flex;justify-content:space-between;font:10px var(--mono);color:var(--muted);padding:12px 20px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}.metric{padding:14px 20px;border-radius:15px;background:linear-gradient(130deg,#192231,#121924);border:1px solid var(--line);position:relative;overflow:hidden}.metric:before{content:'';position:absolute;top:20px;left:0;width:3px;height:28px;background:var(--tone,#38bdf8);box-shadow:0 0 15px var(--tone,#38bdf8)}.metric-label{font-size:11px;color:#93a1b8;letter-spacing:.5px}.metric strong{display:block;font:700 24px/1.65 var(--mono);color:var(--tone,#eef2f9)}.metric small{font-size:11px}.section-bar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}.section-bar h2{margin:0}.section-bar .muted{max-width:650px}.phase-tag{color:#7dd3fc;font:11px var(--mono);letter-spacing:1px}.experiment-note{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:7px 12px;border:1px solid var(--line);border-radius:12px;background:#131a26;margin-bottom:14px}.experiment-note p{margin:0;font:11px/1.6 var(--mono);color:#93a1b8}.experiment-note button{white-space:nowrap}.quality-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}.quality-tile{border:1px solid var(--line);border-radius:15px;padding:22px;background:#0c131f;position:relative}.quality-tile .value{font:700 34px var(--mono);color:#7dd3fc;margin:12px 0}.quality-tile .value.green{color:#34d399}.quality-tile .value.amber{color:#fbbf24}.quality-tile .unit{font-size:14px;color:var(--muted)}.meter{height:6px;border-radius:6px;background:#263143;overflow:hidden;margin:18px 0 8px}.meter span{height:100%;display:block;background:linear-gradient(90deg,#0284c7,#34d399);border-radius:6px}.empty-state{padding:32px 20px;text-align:center;border:1px dashed #ffffff1c;border-radius:14px;margin-top:20px;background:#0b121b55;color:var(--muted)}.empty-state b{display:block;color:#cbd5e1;font-size:14px;margin-bottom:8px}.result-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}.result-card{padding:20px;border:1px solid var(--line);border-top:2px solid var(--tone);border-radius:14px;background:linear-gradient(145deg,#1b2432,#101721)}.result-card .value{font:700 28px var(--mono);color:var(--tone);margin:12px 0 4px}.result-card .meta{font:11px/1.8 var(--mono);color:#93a1b8}.swatch{width:30px;height:30px;border-radius:9px;border:1px solid #ffffff25;float:right;box-shadow:0 0 15px #ffffff08}.result-bar{height:5px;background:#293244;border-radius:4px;margin-top:15px;overflow:hidden}.result-bar i{display:block;height:100%;background:var(--tone)}.confirmation-group{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}.confirmation-group h3{font-size:12px;color:var(--muted);font-family:var(--mono)}.compare-row{display:grid;grid-template-columns:90px 1fr 95px;gap:14px;align-items:center;padding:14px 0}.compare-track{height:8px;border-radius:4px;background:#ffffff09;overflow:hidden}.compare-track i{height:100%;display:block;background:var(--tone);border-radius:4px}.compare-number{font:13px var(--mono);text-align:right}.archive-item{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:15px 0;border-bottom:1px solid var(--line)}.archive-item>button{margin-right:auto}.archive-item>a{font:11px var(--mono);padding:6px 10px;border:1px solid #38bdf833;border-radius:7px}.mobile-layout{display:grid;grid-template-columns:1fr 280px;gap:40px;align-items:center}.connection-steps{display:flex;gap:12px;align-items:center;margin:20px 0;color:#93a1b8}.connection-steps b{padding:12px 18px;border:1px solid var(--line);border-radius:12px;background:#0d1522;color:#cbd5e1;font-weight:500}.footer-note{font:10px var(--mono);color:#64748b;text-align:center;letter-spacing:1px;margin-top:22px}#setup.active,#quality.active,#study.active{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:18px;align-items:start}#setup .card,#quality .card,#study .card{margin:0}#setup.active>.section-bar,#quality.active>.section-bar,#study.active>.section-bar{grid-column:1/-1}#initials{word-break:break-word}#searchSummary:empty{display:none}
-@media(min-width:1400px){.hero h2{font-size:36px}#analysis.active{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(440px,1fr);gap:18px}#analysis>.section-bar{grid-column:1/-1}#analysis .result-grid{grid-template-columns:1fr}.result-card .value{font-size:25px}}
-@media(max-width:1050px){nav{padding:8px 14px 0;gap:2px}nav button{padding:10px 12px;font-size:12px}#setup.active,#quality.active,#study.active{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero-art{display:none}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.mobile-layout{grid-template-columns:1fr}.result-card .value{font-size:22px}}
-@media(max-width:600px){header{padding:12px 16px;gap:10px}.brand{flex:1}h1{font-size:17px}#job{margin-left:0}header>button{margin-left:auto}nav{display:grid;grid-template-columns:repeat(4,1fr);padding:8px;gap:4px}nav button{padding:8px 4px;border-radius:8px;font-size:11px;white-space:normal;border:1px solid transparent}main{padding:14px}.card{padding:18px}.hero{padding:24px}.hero h2{font-size:25px}.metrics{gap:9px}.metric{padding:14px}.metric strong{font-size:20px}.quality-grid,.result-grid{grid-template-columns:1fr}.section-bar{align-items:flex-start;flex-direction:column}table{font-size:11px}td,th{padding:10px 5px}.experiment-note{align-items:flex-start;flex-direction:column}#message{left:14px;right:14px;bottom:14px}.connection-steps{gap:7px}.connection-steps b{padding:8px;font-size:12px}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-alt: #f8f9fb;
+  --ink: #111827;
+  --ink-2: #374151;
+  --muted: #52525b;
+  --line: #e4e4e7;
+  --line-strong: #d4d4d8;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --ok: #047857;
+  --ok-bg: #ecfdf5;
+  --ok-line: #a7f3d0;
+  --warn: #b45309;
+  --warn-bg: #fffbeb;
+  --warn-line: #fde68a;
+  --danger: #b91c1c;
+  --danger-bg: #fef2f2;
+  --danger-line: #fecaca;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 14px/1.65 var(--sans);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
 
-#setup.active{grid-template-columns:1fr}#setup>.card:first-child{max-width:none}.wiring-guide .section-bar{margin-bottom:12px}.wiring-note{font-size:12px;color:#7dd3fc}.wiring-caution{padding:12px 16px;border:1px solid #fbbf2433;border-radius:10px;background:#fbbf240a;color:#fde68a}.wiring-step{display:grid;grid-template-columns:minmax(230px,.7fr) minmax(0,1.6fr);gap:30px;padding:28px 0;border-bottom:1px solid var(--line);align-items:center}.wiring-copy h3{font-size:19px;margin:12px 0}.wiring-copy>p{color:#b3c0d2}.step-number{--step-color:#38bdf8;display:inline-flex;font:700 15px var(--mono);color:var(--step-color);border:1px solid color-mix(in srgb,var(--step-color) 35%,transparent);background:color-mix(in srgb,var(--step-color) 8%,transparent);border-radius:10px;padding:8px 13px}.wire-pair{display:grid;grid-template-columns:1.1fr 25px 1fr;align-items:center;gap:6px;border:1px solid #ffffff0d;border-radius:9px;background:#0d1420;padding:9px 12px;margin:7px 0;font:13px var(--mono)}.wire-pair span{color:#38bdf8}.wire-pair b{font-weight:500}.wire-count{display:inline-block;font:12px var(--mono);color:#7dd3fc;padding:6px 0}.wiring-copy .wiring-warning{color:#fbbf24;font-size:12px;margin-top:12px}.wiring-step figure{margin:0;min-width:0}.wiring-image-button{display:block;padding:0;width:100%;background:#fff;border:1px solid #ffffff30;border-radius:14px;overflow:hidden;cursor:zoom-in;position:relative}.wiring-image-button img{width:100%;display:block;height:auto}.wiring-image-button>span{position:absolute;bottom:10px;right:10px;background:#0c1729e8;border:1px solid #38bdf866;color:#e0f2fe;padding:6px 12px;border-radius:8px;font-size:12px;backdrop-filter:blur(6px)}.wiring-image-button:hover:not(:disabled){transform:none;border-color:#38bdf8;box-shadow:0 0 0 3px #38bdf812}.wiring-step figcaption{font-size:12px;color:var(--muted);margin-top:9px}.wiring-finish{display:flex;gap:24px;align-items:center;justify-content:space-between;padding-top:24px}.wiring-finish p{margin:7px 0}.wiring-finish button{flex-shrink:0}#wiringDialog{width:min(1440px,96vw);height:92vh;max-width:96vw;max-height:94vh;padding:0;border:1px solid #496080;border-radius:16px;background:#0e1623;color:#eef2f9;overflow:hidden;box-shadow:0 30px 100px #0009}#wiringDialog::backdrop{background:#03070dd9;backdrop-filter:blur(7px)}.wiring-viewer{display:flex;flex-direction:column;height:100%}.wiring-toolbar{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}.wiring-toolbar h3{margin:0 auto 0 0;font-size:16px}.wiring-toolbar button{padding:7px 12px}.wiring-viewport{flex:1;min-height:0;overflow:auto;padding:16px;background:#080e17}.wiring-viewport img{display:block;width:100%;max-width:none;height:auto;background:white;border-radius:5px}.wiring-viewer-footer{padding:9px 16px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}@media(max-width:850px){.wiring-step{grid-template-columns:1fr;gap:14px}.wiring-step figure{grid-row:2}.wiring-finish{align-items:flex-start;flex-direction:column}.wiring-toolbar h3{width:100%}.wiring-toolbar{gap:6px}.wiring-toolbar button{font-size:12px;padding:6px 9px}.wiring-viewport{padding:6px}}
-#study.active{grid-template-columns:1fr}.reliability-rule{background:#0b1420;border:1px solid var(--line);border-radius:12px;padding:14px 18px;line-height:2}.reliability-rule b{color:#7dd3fc;margin-right:15px}.reliability-actions{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0 10px}#reliabilityResults{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:20px 0}.reliability-result{padding:20px;background:#0c1420;border:1px solid var(--line);border-radius:14px;border-top:2px solid var(--tone)}.reliability-result h3{color:var(--tone)}.reliability-result strong{font:700 26px var(--mono);display:block;margin:12px 0}.reading-bars{height:110px;display:flex;align-items:flex-end;gap:10px;border-bottom:1px solid #ffffff25;margin:18px 0 10px}.reading-bars>div{flex:1;background:linear-gradient(0deg,#ffffff05,var(--tone));border-radius:5px 5px 0 0;min-height:2px;position:relative}.reading-bars span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font:10px var(--mono);padding-bottom:4px}.reliability-lesson{background:#38bdf80c;border:1px solid #38bdf833;padding:16px 20px;border-radius:12px;line-height:1.8}@media(max-width:750px){#reliabilityResults{grid-template-columns:1fr}.reliability-actions{flex-direction:column}}
-section.active{min-width:0}#setup.active,#quality.active,#analysis.active,#study.active{display:block!important}section.active>.card,section.active>.experiment-note{width:100%;box-sizing:border-box;margin-bottom:18px!important}#livePractice{scroll-margin-top:90px}.practice textarea{width:100%;min-height:100px;box-sizing:border-box}</style>
-<header><div class="brand"><span class="brand-orb"></span><h1>Pocket SDL · 光谱自驱动实验室<small>SELF-DRIVING LAB / CLASSROOM v1.7</small></h1></div><span id="mode">连接中</span><span id="job">待机</span><button class="danger" onclick="post('/api/led/off')">⏹ 停止并关灯</button></header>
-<nav id="nav"></nav><div id="message" role="status"></div><main><div class="metrics" id="overviewMetrics"><div class="metric"><div class="metric-label">DEVICE · 设备状态</div><strong id="metricDevice">连接中</strong><small id="metricMode">等待设备响应</small></div><div class="metric" style="--tone:#34d399"><div class="metric-label">CALIBRATION · 校准与质检</div><strong id="metricQuality">未校准</strong><small id="metricSnr">先固定装置并采集参考</small></div><div class="metric" style="--tone:#a78bfa"><div class="metric-label">EXPERIMENT · 当前轮次</div><strong id="metricRound">未设目标</strong><small id="metricBudget">算法预算 · 12 次</small></div><div class="metric" style="--tone:#fb923c"><div class="metric-label">EVIDENCE · 独立复测</div><strong id="metricConfirm">0 <span>组</span></strong><small id="metricGroup">实验记录自动保存</small></div></div>
-<section id="intro"><div class="card hero"><div><div class="eyebrow">EXPLORE → OPTIMIZE → VERIFY</div><h2>按七个任务，<br>一步一步完成实验。</h2><p>先验证测量，再进行同条件搜索；最后用独立复测和多轮证据评价结果。人类能找到好答案是正常结果，BO 不保证每轮获胜。</p><p class="muted">真实设备与仿真采用相同操作流程，数据始终注明来源。按任务一到七依次完成，每一步都留下一条观察结果。</p><button class="primary" onclick="show('setup')">开始本组实验 →</button></div><div class="hero-art" aria-hidden="true"><div class="spectrum-art"><i style="--c:#a78bfa;--h:28%"></i><i style="--c:#818cf8;--h:45%"></i><i style="--c:#38bdf8;--h:65%"></i><i style="--c:#34d399;--h:92%"></i><i style="--c:#a3e635;--h:72%"></i><i style="--c:#facc15;--h:48%"></i><i style="--c:#fb923c;--h:64%"></i><i style="--c:#f87171;--h:38%"></i></div><div class="spectrum-caption"><span>415 nm</span><span>光谱示意 / 8 CHANNELS</span><span>680 nm</span></div></div></div>
-<div class="card"><h3>七个任务</h3><table><tr><th>任务</th><th>怎么完成</th></tr><tr><td>任务1 · 接线与试灯</td><td>接线检查后，试红、绿、蓝，观察光谱。</td></tr><tr><td>任务2 · 检查读数</td><td>校准，再固定配方测5次，确认稳定性通过。</td></tr><tr><td>任务3 · 调色比赛</td><td>人类、Random和BO分别尝试，比较最好结果。</td></tr><tr><td>任务4 · 再测一次</td><td>把各方法的最佳配方重新测20次，比较平均值和波动。</td></tr><tr><td>任务5 · 多比几轮</td><td>在仿真里换抽签编号和次数，比较多轮结果。</td></tr><tr><td>任务6 · 测量稳不稳</td><td>在仿真里依次测正常、漂移、恢复三组。</td></tr><tr><td>任务7 · 保存与分享</td><td>保存实验数据，小组分享一个发现和一个不足。</td></tr></table><p class="muted">实验结果由操作台记录；小组讨论可在各任务下方记录，留空不影响继续操作。</p></div><details class="card"><summary>拓展任务：在 UniLabOS 中执行工作流</summary><p>完成七任务后，将“连接 → 自检 → 测红/绿/蓝三组 → 保存读数 → 关灯 → 断开”写成工作流，存入 UniLabOS 并执行。</p><p class="muted">这是独立拓展任务。已提供三色测量模板和接入脚本，UniLabOS 0.12.3仿真执行已验证；请按发布包 integrations/unilab/README.md 操作，真机须现场联调。本页面不直接提交工作流。</p></details></section>
-<section id="setup"><div class="experiment-note"><p>任务1 / 7 · 先接好九根线，请助教检查，再试灯。</p></div><div class="card"><h2>任务一｜接好线，让灯亮起来</h2><div class="row"><label>小组 <input id="group" placeholder="第 1 组"></label><label>抽签编号（种子） <input id="seed" type="number" min="0" value="7"></label><label>Random / BO 各测几次 <select id="budget"><option value="12">12 次</option><option value="16">16 次</option><option value="20">20 次</option><option value="24">24 次</option></select></label></div><details><summary>实验前猜一猜（可选记录）</summary><label>你的想法<textarea id="prediction" placeholder="例如：预算较少时，人类能否比 BO 更快？什么结果会推翻你的判断？"></textarea></label></details><button class="primary" onclick="saveSettings()">保存本组条件</button><p class="muted">填写组名即可，预测可口头讨论。算法次数也可在任务三出题前修改；人类次数在任务三单独选。出题后算法次数锁定，需要改时先到任务七结束本轮。</p></div>
-<div class="card wiring-guide"><div class="section-bar"><div><div class="eyebrow">HARDWARE / 9 JUMPER WIRES</div><h2>跟着图，把 9 根线接好</h2></div><span class="wiring-note">图片直接显示 · 点击可在本页放大</span></div>
-<p class="wiring-caution">先断开 USB，再接线。以下均使用公对公杜邦线；按模块丝印核对，不只看颜色。</p>
-<article class="wiring-step"><div class="wiring-copy"><span class="step-number">01</span><h3>放好 Pico，分出电源和地</h3><p>Pico 跨在面包板中沟上，USB 口朝上。选两排互不连通的空孔，分别分配 3.3V 和 GND。</p><div class="wire-pair"><b>3V3 OUT</b><span>→</span><b>P1</b></div><div class="wire-pair"><b>GND</b><span>→</span><b>G1</b></div><p class="muted">P1、P2、P3 在同一组连通孔；G1、G2、G3 在另一组。P/G 是图中标记，不是面包板印刷编号。</p><span class="wire-count">电源分配 · 2 根线</span></div><figure><button class="wiring-image-button" onclick="openWiring('overview')" aria-label="放大接线总图"><img src="/wiring/overview" alt="Pico跨中沟摆放、P和G分配孔及九根杜邦线连接位置" decoding="async"><span>⤢ 放大接线总图</span></button><figcaption>先看板子摆放和 P/G 分配位置，再按下面两步接模块。</figcaption></figure></article>
-<article class="wiring-step"><div class="wiring-copy"><span class="step-number" style="--step-color:#34d399">02</span><h3>接 RGB 灯：3 根线</h3><p>白色插头接灯板；三根公对公线插入配套线的黑色三孔母头，另一端插面包板。</p><div class="wire-pair"><b>P2 · 3.3V</b><span>→</span><b>灯 ＋</b></div><div class="wire-pair"><b>G2 · GND</b><span>→</span><b>灯 －</b></div><div class="wire-pair"><b>GP28</b><span>→</span><b>灯 DI</b></div><p class="wiring-warning">灯板另一端的 DO 是输出端，本次留空。</p><span class="wire-count">累计 · 5 / 9 根</span></div><figure><button class="wiring-image-button" onclick="openWiring('led')" aria-label="放大RGB灯接线图"><img src="/wiring/led" alt="RGB灯白色插头、黑色三孔母头与三根公对公线的连接示意" loading="lazy"><span>⤢ 放大 RGB 灯接线图</span></button><figcaption>白色插头 → 黑色母头 → 公对公线 → 面包板。</figcaption></figure></article>
-<article class="wiring-step"><div class="wiring-copy"><span class="step-number" style="--step-color:#a78bfa">03</span><h3>接 AS7341：4 根线</h3><p>白色六芯插头接传感器。只使用 VCC、GND、SDA、SCL 对应的四个黑色母头。</p><div class="wire-pair"><b>P3 · 3.3V</b><span>→</span><b>VCC</b></div><div class="wire-pair"><b>G3 · GND</b><span>→</span><b>GND</b></div><div class="wire-pair"><b>GP26</b><span>→</span><b>SDA</b></div><div class="wire-pair"><b>GP27</b><span>→</span><b>SCL</b></div><p class="wiring-warning">INT、GPIO 两个线头留空，不接电源或地。</p><span class="wire-count">累计 · 9 / 9 根</span></div><figure><button class="wiring-image-button" onclick="openWiring('sensor')" aria-label="放大AS7341传感器接线图"><img src="/wiring/sensor" alt="AS7341六芯插头中四根有效接线与INT、GPIO留空示意" loading="lazy"><span>⤢ 放大传感器接线图</span></button><figcaption>按板上 VCC / GND / SDA / SCL 丝印确认线序。</figcaption></figure></article>
-<div class="wiring-finish"><div><h3>接完后，检查并固定光路</h3><p>本次使用 3.3V 接法，不改接 VBUS / 5V。灯和传感器正面对准、固定距离并遮光，线材不要遮挡光路。确认接线后普通插入 USB。</p><p class="muted">位置变化后，重新校准并开始新轮次。</p></div><button class="primary" onclick="el('livePractice').scrollIntoView({behavior:'smooth',block:'start'})">接好了，去观察光谱 →</button></div></div><div class="card" id="livePractice"><h3>接线检查通过后，试一试红、绿、蓝</h3><p>接上USB，在下面调节一个滑块，再点测量。看到灯变色、右侧光谱柱子变化，就完成任务一。记录一次RGB和对应读数。</p><iframe id="liveConsole" title="任务一：试灯和读数" style="width:100%;border:0;min-height:600px" src="/console?v=task-flow-2"></iframe></div><div class="row" style="justify-content:flex-end;margin:20px 0"><button class="primary" onclick="show('quality')">完成后进入任务2 →</button></div><div class="card discussion"><h3>小组讨论</h3><p>换一种灯光颜色，哪些光谱柱子变化明显？</p><textarea data-discussion="setup" aria-label="小组讨论记录" placeholder="写下你们的观察或想法……" style="width:100%;min-height:100px;box-sizing:border-box"></textarea><small>填写内容自动保存在当前浏览器。</small></div></section>
-<section id="quality"><div class="experiment-note"><p>任务2 / 7 · 先校准，再连续测5次，看到通过后继续。</p></div><div class="card"><h2>任务二｜检查读数是否可靠</h2><p>先别移动灯和传感器。点第一个按钮，让设备记住“关灯”和“白光”的读数；再点第二个按钮，连续测5次，看看结果稳不稳。</p><div class="row"><button onclick="post('/api/calibrate')">1. 采集暗场与参考</button><button class="primary" onclick="post('/api/course/stability',{repeats:5})">2. 固定 [0.5,0.5,0.5] 测 5 次</button><button onclick="show('experiment')">通过后进入搜索 →</button></div><div id="qualityResult"></div><p class="muted">看到“稳定性通过”就可以继续。没通过，先检查固定和遮光，再重新校准、测5次。重新校准会结束当前比赛，旧记录仍会保存。</p></div><div class="row" style="justify-content:flex-end;margin:20px 0"><button class="primary" onclick="show('experiment')">完成后进入任务3 →</button></div><div class="card discussion"><h3>小组讨论</h3><p>为什么开始比赛前，要先检查读数是否稳定？</p><textarea data-discussion="quality" aria-label="小组讨论记录" placeholder="写下你们的观察或想法……" style="width:100%;min-height:100px;box-sizing:border-box"></textarea><small>填写内容自动保存在当前浏览器。</small></div></section>
-<section id="experiment"><div class="experiment-note"><p>任务3 / 7 · 各选各的次数，同一个目标比调色。</p></div><div class="card"><h2>任务三｜人类、Random和BO调色比赛</h2><p>先选次数，再点“随机神秘盲盒目标”。你先调色测几次，再分别启动Random和BO。看谁的L更小，记录各自用了几次。</p><p class="muted">人类次数单独选；Random和BO共用算法次数。算法次数在出题前设置。</p></div><div class="experiment-note"><p id="initials">RGB 光源 · 八通道实时测量 · 人类 / Random / BO</p><button onclick="show('quality')">校准与稳定性检查 ↗</button></div><iframe id="console" title="Pocket SDL 实验操作台"></iframe><div class="footer-note">POCKET SDL · 任务版 v1.5 · 人类次数独立选择</div><div class="row" style="justify-content:flex-end;margin:20px 0"><button class="primary" onclick="show('analysis')">完成后进入任务4 →</button></div><div class="card discussion"><h3>小组讨论</h3><p>谁更接近目标？各自用了多少次机会？</p><textarea data-discussion="experiment" aria-label="小组讨论记录" placeholder="写下你们的观察或想法……" style="width:100%;min-height:100px;box-sizing:border-box"></textarea><small>填写内容自动保存在当前浏览器。</small></div></section>
-<section id="analysis"><div class="experiment-note"><p>任务4 / 7 · 固定找到的好配方，重新测20次。</p></div><div class="card"><h2>任务四｜好配方再测20次</h2><p>看看谁找到的配方最接近目标。L越小越接近；再把好配方多测几次，确认它不是碰巧得了高分。</p><canvas id="curve" width="1100" height="300" aria-label="各方法单次损失和最佳损失曲线"></canvas><p><span style="color:#5ce2b0">人类</span> · <span style="color:#ffab55">Random</span> · <span style="color:#58c9ff">BO</span></p><div id="searchSummary"></div></div>
-<div class="card"><h3>固定各方法的最佳配方，重新测量</h3><div class="row"><label>每配方次数 <input id="repeats" type="number" min="3" max="30" value="20"></label><button class="primary" onclick="post('/api/course/confirm',{repeats:+el('repeats').value})">开始独立复测</button></div><p class="muted">真机可先用 3 次检查流程，课堂正式复测用 20 次。复测不加入训练、不改变搜索最佳、不消耗搜索预算。中断结果只作部分记录。</p><div id="confirmation"></div></div><div class="row" style="justify-content:flex-end;margin:20px 0"><button class="primary" onclick="show('study')">完成后进入任务5 →</button></div><div class="card discussion"><h3>小组讨论</h3><p>复测后，刚才的好成绩还可靠吗？</p><textarea data-discussion="analysis" aria-label="小组讨论记录" placeholder="写下你们的观察或想法……" style="width:100%;min-height:100px;box-sizing:border-box"></textarea><small>填写内容自动保存在当前浏览器。</small></div></section>
-<section id="study"><div class="experiment-note"><p>任务5 / 7 · 在仿真里多比几轮，别只看一次输赢。</p></div><div class="card"><h2>任务五｜多比几轮，看谁更稳定 · 仿真</h2><p>先猜：多给几次机会，BO会更好吗？保持同一个目标，用5个不同的抽签编号，让Random和BO各比8、16、24次。点下面的按钮，等结果出来再比较。</p><label>抽签编号（用逗号分开）<input id="seeds" value="1,2,3,4,5" style="width:260px"></label><label>每轮次数（用逗号分开）<input id="budgets" value="8,16,24" style="width:260px"></label><button class="primary sim" onclick="post('/api/course/benchmark',{seeds:el('seeds').value.split(',').map(Number),budgets:el('budgets').value.split(',').map(Number)})">开始批量仿真研究</button><div id="benchmark"></div><p class="muted">平局阈值 |ΔL| ≤ 0.001，只作课堂规则。统计按完整种子成对比较；未完成的批次不计算胜率。仿真结论不能替代真实设备性能结论。</p></div>
-<div class="row" style="justify-content:flex-end;margin:20px 0"><button class="primary" onclick="show('reliability')">完成后进入任务6 →</button></div><div class="card discussion"><h3>小组讨论</h3><p>多给几次机会，BO是否每轮都会赢？</p><textarea data-discussion="study" aria-label="小组讨论记录" placeholder="写下你们的观察或想法……" style="width:100%;min-height:100px;box-sizing:border-box"></textarea><small>填写内容自动保存在当前浏览器。</small></div></section><section id="reliability"><div class="experiment-note"><p>任务6 / 7 · 依次点正常、漂移、恢复，比较三组读数。</p></div><div class="card reliability-card"><div class="eyebrow">MEASUREMENT / TRUST YOUR DATA</div><h2>任务六｜条件变了，读数会怎样？ · 仿真</h2><p>同一个 RGB 配方，为什么会测出不同的结果？用三组测量，观察固定条件对结果的影响。</p><div class="reliability-rule"><b>保持不变</b> RGB [0.5, 0.5, 0.5] · 同一校准 · 每组 5 次<br><b>只改变一项</b> 第二组加入模拟位置漂移</div><p class="muted">先预测：哪一组波动最大？模拟漂移采用交替缩放读数，仅用于说明测量条件变化，不是实际位移模型。无需移动真实设备。</p><div class="reliability-actions"><button id="rel-baseline" onclick="post('/api/course/reliability',{stage:'baseline'})">① 正常测量 5 次</button><button id="rel-drift" onclick="post('/api/course/reliability',{stage:'drift'})">② 加入漂移，再测 5 次</button><button id="rel-recovery" class="primary" onclick="post('/api/course/reliability',{stage:'recovery'})">③ 恢复正常，复测 5 次</button></div><p id="reliabilityHelp" class="muted"></p><div id="reliabilityResults"></div><div id="reliabilityLesson" class="reliability-lesson">观察重点：每根柱子代表一次测量的八通道总读数；五根柱子越不齐，测量条件越值得检查。正式质检使用八通道相对波动，要求小于 5%。</div><details><summary>助教排障参考：超时和饱和</summary><p><b>串口超时：</b>没有收到读数，不等于读数为零。真机应检查数据线、串口占用与固件响应。</p><p><b>传感器饱和：</b>读数超出有效范围，不能作为正常结果参与比较。需检查光强、几何或曝光设置，再重新校准。</p></details></div><div class="row" style="justify-content:flex-end;margin:20px 0"><button class="primary" onclick="show('archive')">完成后进入任务7 →</button></div><div class="card discussion"><h3>小组讨论</h3><p>RGB没变，为什么读数也会变？恢复后是否重新通过？</p><textarea data-discussion="reliability" aria-label="小组讨论记录" placeholder="写下你们的观察或想法……" style="width:100%;min-height:100px;box-sizing:border-box"></textarea><small>填写内容自动保存在当前浏览器。</small></div></section>
+/* Top bar */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.topbar-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: 0;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface-alt);
+  color: var(--ink-2);
+}
+.pill.physical { color: var(--ok); background: var(--ok-bg); border-color: var(--ok-line); }
+.pill.simulated { color: var(--warn); background: var(--warn-bg); border-color: var(--warn-line); }
+.pill.ok { color: var(--ok); background: var(--ok-bg); border-color: var(--ok-line); }
+.pill.busy { color: var(--primary); background: #eff6ff; border-color: #bfdbfe; }
+.topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-<section id="archive"><div class="experiment-note"><p>任务7 / 7 · 下载记录，用一句话说发现，再说一个不足。</p></div><div class="card"><h2>任务七｜保存结果，讲清发现</h2><label>小组发现（选填，也可以直接口头分享）<textarea id="conclusion" placeholder="我们发现谁更好？用了几次机会？复测后还是这样吗？下次想改什么？"></textarea></label><div class="row"><button class="primary" onclick="saveSettings()">保存结论</button><button onclick="post('/api/course/finish')">结束并归档本轮（可设置下一轮）</button><button onclick="archives()">刷新历史会话</button></div><p class="muted">自动落盘；重启后从这里下载旧会话，不自动恢复旧校准控制设备。JSON 为最新快照，JSONL 含所有轮次与覆盖前的记录，CSV 为真实逐次采样。导出包含教师隐藏目标，请在挑战结束后分享。</p><div id="archives"></div><h3>阅读历史记录</h3><pre id="archivePreview">选择一条历史会话查看模式、小组、当前轮次和复测记录。</pre></div><div class="card discussion"><h3>小组讨论</h3><p>这次最有意思的发现是什么？还有什么不能确定？</p><textarea data-discussion="archive" aria-label="小组讨论记录" placeholder="写下你们的观察或想法……" style="width:100%;min-height:100px;box-sizing:border-box"></textarea><small>填写内容自动保存在当前浏览器。</small></div></section>
-</main><dialog id="wiringDialog" aria-labelledby="wiringDialogTitle"><div class="wiring-viewer"><div class="wiring-toolbar"><h3 id="wiringDialogTitle">接线图</h3><button onclick="zoomWiring(-25)" aria-label="缩小接线图">－</button><button onclick="zoomWiring(0)">适应宽度</button><button onclick="zoomWiring(25)" aria-label="放大接线图">＋</button><button onclick="el('wiringDialog').close()" aria-label="关闭接线大图">✕ 关闭</button></div><div class="wiring-viewport" id="wiringViewport"><img id="wiringLargeImage" alt=""></div><div class="wiring-viewer-footer">当前页面查看 · 放大后可滚动查看细节 · 按 Esc 或点击空白遮罩关闭</div></div></dialog><script>
-history.scrollRestoration='manual';window.addEventListener('load',()=>window.scrollTo(0,0));
-const el=id=>document.getElementById(id), names={intro:'课程路线',setup:'任务一 · 接线与试灯',quality:'任务二 · 检查读数',experiment:'任务三 · 调色比赛',analysis:'任务四 · 再测一次',study:'任务五 · 多比几轮',reliability:'任务六 · 测量稳不稳',archive:'任务七 · 保存与分享'};let state=null,initialized=false;
-el('console').addEventListener('load',()=>integrateConsole(el('console'),'arena'));
-el('liveConsole').addEventListener('load',()=>integrateConsole(el('liveConsole'),'live'));
-for(const [id,name] of Object.entries(names)){let b=document.createElement('button');b.textContent=name;b.id='nav-'+id;b.onclick=()=>show(id);el('nav').append(b)}
-function show(id){window.scrollTo(0,0);el('overviewMetrics').style.display=id==='intro'?'none':'';document.querySelectorAll('main>section').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('selected',b.id==='nav-'+id));if(id==='experiment'&&!el('console').src)el('console').src='/console?v=task-flow-2';if(id==='archive')archives();if(id==='analysis'&&state)plot(state.arena)}show('setup');
-let noticeTimer;function notice(text,error=false){clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>el('message').style.display='none',error?12000:4500);el('message').style.display='block';el('message').style.background=error?'#763c3b':'#20364b';el('message').textContent=text;}
-async function post(path,body={}){try{let r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});let d=await r.json();if(!d.ok)throw Error(d.error?.message||'请求失败');notice('已执行；请查看当前状态与结果。');await refresh();return d}catch(e){notice(e.message,true)}}
-async function saveSettings(){await post('/api/course/settings',{group:el('group').value,seed:+el('seed').value,budget:+el('budget').value,prediction:el('prediction').value,conclusion:el('conclusion').value})}
-function fmt(n){return n==null?'—':Number(n).toFixed(6)}function safe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function table(headers,rows){return '<table><tr>'+headers.map(h=>'<th>'+safe(h)+'</th>').join('')+'</tr>'+rows.map(row=>'<tr>'+row.map(v=>'<td>'+safe(v)+'</td>').join('')+'</tr>').join('')+'</table>'}
-async function refresh(){try{let d=await (await fetch('/api/state')).json();const previousBudget=state?.course?.budget;state=d.state;let c=state.course;if(initialized&&previousBudget!==c.budget)el('budget').value=c.budget;renderDashboard(state);if(!initialized){['group','seed','budget','prediction','conclusion'].forEach(k=>el(k).value=c[k]);initialized=true}el('mode').textContent=state.mode==='PHYSICAL'?'真实设备 · PHYSICAL':'仿真数据 · SIMULATED';el('job').textContent=state.active_job?'进行中：'+state.active_job:'待机';document.querySelectorAll('.sim').forEach(b=>b.disabled=state.mode!=='SIMULATED'||!!state.active_job);el('seed').disabled=el('budget').disabled=!!state.arena.round_id;
-let cal=state.calibration,q=c.stability;renderQuality(cal,q);el('initials').textContent='Random 和 BO 各测 '+c.budget+' 次 · 人类次数在下方单独选择 · 出题后算法次数锁定';
-const runs={human:state.arena.human,...state.arena.ai_runs};el('searchSummary').innerHTML=renderSearch(runs);
-el('confirmation').innerHTML=renderConfirmations(c.confirmations);
-let b=c.benchmark;el('benchmark').innerHTML=b?'<h3>'+safe(b.status)+' · 已建立 '+b.runs.length+' 条轨迹</h3>'+table(['预算','BO 胜/平/负','Random 均值 / 最差','BO 均值 / 最差'],b.summary.map(s=>[s.budget,s.bo_wins+' / '+s.ties+' / '+s.bo_losses,fmt(s.random.mean)+' / '+fmt(s.random.worst),fmt(s.bo.mean)+' / '+fmt(s.bo.worst)])):'<div class="empty-state"><b>一次胜出，还不足以评价一种方法</b>完成固定目标后，开始跨种子、跨预算的对照实验。</div>';renderReliability(state);if(el('analysis').classList.contains('active'))plot(state.arena);if(state.last_error)notice(state.last_error.message,true);
-}catch(e){notice('操作台暂时不可达，请确认启动终端仍在运行。',true)}}
-function plot(arena){const cv=el('curve');cv.width=Math.max(320,cv.clientWidth);const ctx=cv.getContext('2d'),w=cv.width,h=cv.height;ctx.clearRect(0,0,w,h);const runs=[arena.human,arena.ai_runs.random,arena.ai_runs.bo],colors=['#5ce2b0','#ffab55','#58c9ff'];const rows=runs.filter(Boolean).flatMap(r=>r.rows),max=Math.max(.01,...rows.map(r=>r.loss))*1.1,n=Math.max(2,...runs.filter(Boolean).map(r=>r.rows.length));ctx.font='14px system-ui';ctx.fillStyle='#bac9db';for(let j=0;j<=4;j++){let y=20+j*60;ctx.strokeStyle='#2b3e56';ctx.beginPath();ctx.moveTo(60,y);ctx.lineTo(w-25,y);ctx.stroke();ctx.fillText((max*(1-j/4)).toFixed(3),5,y+5)}ctx.fillText('实验次数  1 → '+n,w/2,h-10);runs.forEach((run,i)=>{if(!run)return;for(let key of ['loss','best_so_far']){ctx.strokeStyle=colors[i];ctx.lineWidth=2;ctx.setLineDash(key==='loss'?[]:[7,6]);ctx.beginPath();run.rows.forEach((r,j)=>{let x=60+j/(n-1)*(w-85),y=260-r[key]/max*240;j?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke()}});ctx.setLineDash([])}
-async function archives(){try{let d=await (await fetch('/api/course/archives')).json();el('archives').innerHTML=d.archives.map(a=>'<div class="archive-item"><button onclick="preview(\''+a.id+'\')">'+safe(a.id)+' · '+safe(a.group)+' · '+safe(a.mode)+'</button> '+['json','jsonl','csv'].map(f=>'<a download="'+a.id+'.'+f+'" href="/api/course/export?id='+a.id+'&format='+f+'">下载 '+f.toUpperCase()+'</a>').join(' ')+'</div>').join('')}catch(e){notice(e.message,true)}}
-async function preview(id){let d=await(await fetch('/api/course/export?id='+id)).json();el('archivePreview').textContent=JSON.stringify({session:d.course.session_id,mode:d.state.mode,group:d.course.group,round_id:d.state.arena.round_id,prediction:d.course.prediction,conclusion:d.course.conclusion,stability:d.course.stability,confirmations:d.course.confirmations,benchmark_summary:d.course.benchmark?.summary},null,2)}
+/* Stepper nav */
+.stepper-wrap {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+nav.stepper {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+nav.stepper::-webkit-scrollbar { display: none; }
+nav.stepper button {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 12px 12px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+}
+nav.stepper button:hover { color: var(--ink); background: transparent; }
+nav.stepper button.selected {
+  color: var(--primary);
+  font-weight: 600;
+  border-bottom-color: var(--primary);
+}
+.step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #f4f4f5;
+  color: var(--muted);
+  font: 600 12px/22px var(--sans);
+  text-align: center;
+}
+nav.stepper button.selected .step-num {
+  background: var(--primary);
+  color: #ffffff;
+}
+nav.stepper button.done .step-num {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
 
-function integrateConsole(frame,view){
- const doc=frame.contentDocument;if(!doc)return;
- const style=doc.createElement('style');style.textContent=`html{background:#0b0f17!important;color-scheme:dark}body{background:transparent!important;min-height:0!important}body{position:relative}body>header{position:absolute;right:0;top:0;background:transparent;border:0;padding:0;z-index:2}#btnCalibrate,#btnLedOff{display:none!important}.brand{display:none!important}.badges{width:100%;justify-content:flex-end}#badgeMode,#badgeCal{display:none}.tabs{background:transparent;padding:0 170px 12px 0;gap:8px;border:0;flex-wrap:wrap}.tab{border-radius:10px!important;border:1px solid rgba(255,255,255,.1)!important;background:#131a26}.tab.active{background:linear-gradient(135deg,#0284c7,#2563eb);border-color:#7dd3fc66!important}.tab.active::after{display:none}main{padding:0!important;max-width:none!important}.card{background:linear-gradient(135deg,#171f2d,#121923);border-radius:18px}.grid-2{grid-template-columns:minmax(300px,390px) 1fr}.grid-arena{grid-template-columns:minmax(320px,420px) 1fr}@media(max-width:1040px){.grid-2,.grid-arena{grid-template-columns:1fr}body>header{position:relative;justify-content:flex-end;margin-bottom:10px}.tabs{padding-right:0}}`;
- style.textContent+=' .tabs{display:none!important} body>header{position:relative!important;display:flex;justify-content:flex-end;margin-bottom:10px}';doc.head.append(style);doc.querySelector('[data-tab="'+view+'"]')?.click();
- const resize=()=>{const main=doc.querySelector('main');if(main&&frame.offsetParent!==null)frame.style.height=Math.ceil(main.getBoundingClientRect().bottom+30)+'px'};
- new ResizeObserver(resize).observe(doc.body);resize();
+/* Main layout */
+main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 24px 72px;
 }
-function renderDashboard(s){const c=s.course,q=c.stability,cal=s.calibration;
- el('metricDevice').textContent=s.connected?'已连接':'未连接';el('metricMode').textContent=s.mode==='PHYSICAL'?'PHYSICAL · 真实设备':'SIMULATED · 仿真模式';
- el('metricQuality').textContent=q?.passed?'质检通过':cal?'待质检':'未校准';el('metricSnr').textContent=cal?'A '+Math.round(cal.reference_scale)+' · SNR '+cal.snr+'×':'暗场 / 参考 / 稳定性';
- el('metricRound').textContent=s.arena.round_id?'#'+s.arena.round_id:'未设目标';el('metricBudget').textContent='SEED '+c.seed+' · Random/BO 各 '+c.budget+' 次';
- const done=c.confirmations.filter(r=>r.status==='completed');el('metricConfirm').textContent=done.length+' 组';el('metricGroup').textContent=c.group||'实验记录自动保存';
- el('mode').style.color=s.mode==='PHYSICAL'?'#6ee7b7':'#fde68a';el('mode').style.background=s.mode==='PHYSICAL'?'#10b98120':'#f59e0b13';
+section { display: none; }
+section.active { display: block; }
+
+.page-head {
+  margin-bottom: 22px;
 }
-function renderQuality(cal,q){
- const ratio=q?.rms_relative,passed=q?.passed;
- el('qualityResult').innerHTML='<div class="quality-grid"><div class="quality-tile"><div class="eyebrow">01 / REFERENCE</div><div class="metric-label">参考尺度 A</div><div class="value">'+(cal?Math.round(cal.reference_scale):'—')+'</div><div class="muted">'+(cal?'信噪比 '+cal.snr+'× · 已采集暗场与参考':'等待采集暗场与白光参考')+'</div><div class="meter"><span style="width:'+(cal?100:0)+'%"></span></div></div><div class="quality-tile"><div class="eyebrow">02 / REPEATABILITY</div><div class="metric-label">固定点相对波动 · 要求 &lt; 5%</div><div class="value '+(passed?'green':'amber')+'">'+(ratio==null?'—':(ratio*100).toFixed(3)+'<span class="unit"> %</span>')+'</div><div class="muted">'+(q?q.rows.length+' 次采样 · '+(passed?'稳定性通过':q.status==='running'?'测量中':'尚未通过'):'等待固定点重复测量')+'</div><div class="meter"><span style="width:'+(q?Math.min(100,q.rows.length/5*100):0)+'%"></span></div></div></div>';
+.page-head h2 {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0;
+  margin: 0 0 6px;
+  color: var(--ink);
 }
-const methodNames={human:'人类选手',random:'Random',bo:'BO · GP-EI'},methodColors={human:'#34d399',random:'#fb923c',bo:'#38bdf8'};
-function renderSearch(runs){const entries=Object.entries(runs).filter(([k,r])=>r);if(!entries.length)return '<div class="empty-state"><b>等待第一条实验轨迹</b>在人机调色擂台中完成搜索，单次损失与最佳损失将在这里汇合。</div>';return '<div class="result-grid">'+entries.map(([k,r])=>'<div class="result-card" style="--tone:'+methodColors[k]+'"><span class="swatch" style="background:rgb('+(r.best_x||[0,0,0]).map(v=>Math.round(v*255)).join(',')+')"></span><div style="color:var(--tone)">'+methodNames[k]+'</div><div class="value">'+fmt(r.best_loss)+'</div><div class="meta">最佳 L(x) · '+r.rows.length+' / '+r.budget+' 次<br>RGB '+safe(JSON.stringify(r.best_x))+'</div><div class="result-bar"><i style="width:'+Math.min(100,r.rows.length/r.budget*100)+'%"></i></div></div>').join('')+'</div>'}
-function renderConfirmations(reports){if(!reports.length)return '<div class="empty-state"><b>搜索结束，验证开始</b>固定最佳 RGB，重新采样；这里展示独立复测均值与样本标准差。</div>';return reports.map(r=>{const entries=Object.entries(r.results),max=Math.max(.001,...entries.map(([k,v])=>v.mean||0));return '<div class="confirmation-group"><h3>'+safe(r.id)+' · '+(r.status==='completed'?'复测完成':r.status==='running'?'正在复测':'已中断')+'</h3>'+entries.map(([k,v])=>'<div class="compare-row" style="--tone:'+methodColors[k]+'"><span style="color:var(--tone)">'+methodNames[k]+'</span><span class="compare-track"><i style="width:'+((v.mean||0)/max*100)+'%"></i></span><span class="compare-number">'+fmt(v.mean)+'</span></div>').join('')+table(['方法','搜索最佳','新测次数','平均 L','样本标准差'],entries.map(([k,v])=>[methodNames[k],fmt(v.search_best),v.rows.length,fmt(v.mean),fmt(v.sample_sd)]))+'</div>'}).join('')}
-function renderReliability(s){const exp=s.course.reliability,stages=exp?.stages||{},valid=!!exp&&exp.calibration_id===s.calibration?.id,busy=!!s.active_job,sim=s.mode==='SIMULATED';
- el('rel-baseline').disabled=!sim||busy||!s.calibration;
- el('rel-drift').disabled=!sim||busy||!valid||stages.baseline?.status!=='completed';
- el('rel-recovery').disabled=!sim||busy||!valid||stages.drift?.status!=='completed';
- el('reliabilityHelp').textContent=!sim?'此对照仅在仿真模式进行。':!s.calibration?'先去“校准与质检”采集暗场和参考。':!valid&&exp?'校准已变化，下方为旧记录；请从第一步重新开始。':'按 ① → ② → ③ 操作。漂移只作用于第二组测量；恢复后仍须通过质检才能继续搜索。';
- const sums=Object.values(stages).flatMap(r=>r.rows.map(row=>row.raw.reduce((a,b)=>a+b,0))),max=Math.max(1,...sums)*1.18;
- el('reliabilityResults').innerHTML=[['baseline','① 正常条件','#34d399'],['drift','② 模拟漂移','#fb923c'],['recovery','③ 恢复正常','#38bdf8']].map(([key,title,color])=>{const r=stages[key],values=(r?.rows||[]).map(row=>row.raw.reduce((a,b)=>a+b,0));return '<div class="reliability-result" style="--tone:'+color+'"><h3>'+title+'</h3><div class="reading-bars">'+Array.from({length:5},(_,i)=>'<div style="height:'+(values[i]==null?2:values[i]/max*100)+'%;opacity:'+(values[i]==null?.15:1)+'"><span>'+(values[i]==null?'':Math.round(values[i]))+'</span></div>').join('')+'</div><div class="muted">第 1 → 5 次 · 八通道总读数（同一纵向尺度）</div><strong>'+(r?.rms_relative==null?'—':(r.rms_relative*100).toFixed(3)+'%')+'</strong><div>八通道相对波动 · '+(r?.status==='completed'?(r.passed?'通过质检':'未通过质检'):r?.status==='running'?'正在采集':r?.status==='interrupted'?'已中断':'等待测量')+'</div></div>'}).join('');
- el('reliabilityLesson').textContent=valid&&stages.recovery?.status==='completed'?'讨论：第二组 RGB 没变，读数为什么变了？这说明“结果变化”不能直接归功于配方或算法。真实实验如果移动装置，应重新校准、检查稳定性并新建目标；本实验恢复的是同一模拟条件，不代表旧的真实目标还能继续使用。':valid&&stages.drift?.status==='completed'?'现在比较第一组和第二组：配方没变，测量条件变了。若波动未通过质检，搜索应暂停。点击第三步，检查恢复正常后的重复性。':'先预测，再观察：每根柱子是一笔新测量。总读数帮助看变化，正式质检使用八通道相对波动，要求小于 5%。';
+.page-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 68ch;
 }
-const wiringImages={overview:{title:'01 · Pico 与九根线接线总图',url:'/wiring/overview'},led:{title:'02 · RGB 灯的三根接线',url:'/wiring/led'},sensor:{title:'03 · AS7341 的四根接线',url:'/wiring/sensor'}};
-let wiringZoom=100,wiringPreviousOverflow='';
-function openWiring(key){const item=wiringImages[key];if(!item)return;el('wiringDialogTitle').textContent=item.title;const img=el('wiringLargeImage');img.src=item.url;img.alt=item.title;zoomWiring(0);el('wiringViewport').scrollTo(0,0);wiringPreviousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';el('wiringDialog').showModal()}
-function zoomWiring(delta){wiringZoom=delta===0?100:Math.max(50,Math.min(250,wiringZoom+delta));el('wiringLargeImage').style.width=wiringZoom+'%'}
-el('wiringDialog').addEventListener('close',()=>document.body.style.overflow=wiringPreviousOverflow);
-el('wiringDialog').addEventListener('click',e=>{if(e.target===el('wiringDialog'))el('wiringDialog').close()});
-el('message').onclick=()=>el('message').style.display='none';
-document.querySelectorAll('[data-discussion]').forEach(t=>{
- const key='pocket-discussion-v1-'+t.dataset.discussion;
- try{t.value=localStorage.getItem(key)||''}catch(e){}
- t.addEventListener('input',()=>{try{localStorage.setItem(key,t.value)}catch(e){t.nextElementSibling.textContent='当前浏览器无法保存，请复制记录留存。'}});
+
+/* Cards & section blocks */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card h3, .block-head h3 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+.block-head {
+  margin: 24px 0 12px;
+}
+.block-head h3 { margin: 0 0 4px; }
+.block-head p { margin: 0; max-width: 68ch; }
+.muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.desc { color: var(--muted); font-size: 14px; line-height: 1.65; max-width: 68ch; }
+.mono { font-family: var(--mono); }
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+input, select, textarea {
+  font: 400 14px/1.45 var(--sans);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  padding: 7px 11px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid #93c5fd;
+  outline-offset: 0;
+  border-color: var(--primary);
+}
+input[type=number] { width: 92px; }
+textarea { width: 100%; min-height: 80px; resize: vertical; line-height: 1.6; }
+
+button {
+  font: 600 14px/1.35 var(--sans);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: #f4f4f5; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+button.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+button.primary:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
+button.danger {
+  color: var(--danger);
+  background: var(--danger-bg);
+  border-color: var(--danger-line);
+}
+button.danger:hover:not(:disabled) { background: #fee2e2; }
+button.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  font-weight: 400;
+  padding: 6px 10px;
+}
+button.ghost:hover:not(:disabled) { color: var(--ink); background: #f4f4f5; }
+
+/* Callout */
+.callout {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-2);
+  margin-bottom: 16px;
+}
+.callout.warn { background: var(--warn-bg); border-color: var(--warn-line); color: var(--warn); }
+.callout.ok { background: var(--ok-bg); border-color: var(--ok-line); color: var(--ok); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; font-weight: 600; color: var(--muted); background: var(--surface-alt); }
+tr:last-child td { border-bottom: 0; }
+
+/* Wiring switcher */
+.subtabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.subtabs button {
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+  background: var(--surface-alt);
+  border-color: var(--line);
+}
+.subtabs button.active {
+  color: var(--primary);
+  font-weight: 600;
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+.wiring-pane {
+  display: none;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.wiring-pane.active { display: grid; }
+.wire-list { list-style: none; padding: 0; margin: 12px 0; }
+.wire-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  margin-bottom: 6px;
+  font: 400 13px var(--mono);
+  background: var(--surface-alt);
+}
+.wire-list b { font-weight: 600; }
+.wire-list span { color: var(--muted); }
+.wiring-img-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: zoom-in;
+  text-align: right;
+  font-weight: 400;
+}
+.wiring-img-btn:hover:not(:disabled) { background: #ffffff; border-color: var(--primary); }
+.wiring-img-btn img { width: 100%; display: block; height: auto; border-radius: 4px; }
+.wiring-img-btn small { display: inline-block; margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+/* Key metric tiles */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+.stat-box {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 18px;
+  background: var(--surface-alt);
+}
+.stat-box .k { font-size: 12px; font-weight: 600; color: var(--muted); }
+.stat-box .v { font: 600 28px/1.3 var(--sans); margin: 6px 0 4px; color: var(--ink); }
+.stat-box .v.ok { color: var(--ok); }
+.stat-box .v.warn { color: var(--warn); }
+
+/* Search summary cards */
+.method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 16px 0 0;
+}
+.method-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: var(--surface-alt);
+}
+.method-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+}
+.swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  display: inline-block;
+}
+.method-val { font: 600 24px/1.35 var(--sans); margin: 6px 0 4px; }
+.method-meta { font: 400 12px/1.5 var(--mono); color: var(--muted); }
+
+/* Reliability 3-col */
+.rel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+.rel-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--surface-alt);
+}
+.rel-card h4 { margin: 0 0 10px; font-size: 14px; font-weight: 600; }
+.reading-bars {
+  height: 108px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  border-bottom: 1px solid var(--line-strong);
+  margin: 16px 0 10px;
+  padding-top: 20px;
+}
+.reading-bars > div {
+  flex: 1;
+  background: var(--bar-color, var(--primary));
+  border-radius: 4px 4px 0 0;
+  min-height: 2px;
+  position: relative;
+}
+.reading-bars span {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  font: 400 12px/1.2 var(--sans);
+  color: var(--ink-2);
+  padding-bottom: 4px;
+  white-space: nowrap;
+}
+.rel-num { font: 600 24px/1.3 var(--sans); margin: 8px 0 2px; }
+
+/* Unified dark optical instrument canvas */
+.chart-frame {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+.chart-legend b { font-weight: 600; }
+canvas#curve {
+  width: 100%;
+  height: 260px;
+  display: block;
+}
+
+/* Embedded consoles (frameless, no double card) */
+iframe.console-frame {
+  display: block;
+  width: 100%;
+  min-height: 540px;
+  border: 0;
+  background: transparent;
+}
+
+/* Details & discussion */
+details {
+  border-top: 1px solid var(--line);
+  margin-top: 16px;
+  padding-top: 12px;
+}
+details.box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-top: 18px;
+}
+summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  user-select: none;
+}
+summary:hover { color: var(--primary); }
+
+/* Footer action bar */
+.step-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+/* Archives */
+.archive-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.archive-row:last-child { border-bottom: 0; }
+.archive-row > button { margin-right: auto; text-align: left; font: 400 13px var(--mono); }
+.dl-link {
+  font: 600 12px var(--mono);
+  padding: 5px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  color: var(--ink-2);
+}
+.dl-link:hover { background: #f4f4f5; text-decoration: none; }
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 360px;
+  overflow: auto;
+  font: 400 12px/1.65 var(--mono);
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  padding: 14px 16px;
+  border-radius: 8px;
+  color: var(--ink-2);
+}
+
+/* Toast */
+#message {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  max-width: 440px;
+  z-index: 50;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  display: none;
+  cursor: pointer;
+}
+
+/* Zoom dialog */
+#wiringDialog {
+  width: min(1280px, 95vw);
+  height: 90vh;
+  max-width: 95vw;
+  max-height: 92vh;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+#wiringDialog::backdrop { background: rgba(15, 23, 42, 0.55); }
+.wiring-viewer { display: flex; flex-direction: column; height: 100%; }
+.wiring-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.wiring-toolbar h3 { margin: 0 auto 0 0; font-size: 16px; font-weight: 600; }
+.wiring-viewport { flex: 1; min-height: 0; overflow: auto; padding: 16px; background: #f4f4f5; }
+.wiring-viewport img { display: block; width: 100%; max-width: none; height: auto; background: #ffffff; border-radius: 6px; }
+
+@media (max-width: 860px) {
+  .wiring-pane.active { grid-template-columns: 1fr; }
+  .stat-grid, .method-grid, .rel-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <h1 class="title">Pocket SDL 课堂实验</h1>
+    <span id="mode" class="pill">连接中</span>
+    <span id="calBadge" class="pill">未校准</span>
+    <span id="job" class="pill busy" style="display:none">进行中</span>
+    <div class="topbar-actions">
+      <button class="ghost" onclick="show('intro')">课程总览</button>
+      <button class="danger" onclick="post('/api/led/off')">停止并关灯</button>
+    </div>
+  </div>
+</header>
+
+<div class="stepper-wrap">
+  <nav id="nav" class="stepper" aria-label="实验步骤"></nav>
+</div>
+
+<div id="message" role="status"></div>
+
+<main>
+  <!-- 课程总览 -->
+  <section id="intro">
+    <div class="page-head">
+      <h2>七步完成自主光谱实验</h2>
+      <p>按顺序完成任务 1 到任务 7：先验证硬件和读数稳定性，再做人机对比、独立复测与仿真统计。</p>
+    </div>
+    <div class="card">
+      <table>
+        <tr><th style="width:160px">步骤</th><th>本步目标</th></tr>
+        <tr><td>1. 接线与试灯</td><td>按图接好 9 根线，试红、绿、蓝，观察 8 通道光谱变化。</td></tr>
+        <tr><td>2. 校准与质检</td><td>采集暗场与白光参考，再固定配方连测 5 次，确认波动 &lt; 5%。</td></tr>
+        <tr><td>3. 调色比赛</td><td>同一目标下，分别用人类、Random、BO 搜索最佳 RGB 配方。</td></tr>
+        <tr><td>4. 独立复测</td><td>固定各方法找到的最佳配方重测 20 次，比较均值与波动。</td></tr>
+        <tr><td>5. 多种子仿真</td><td>在仿真模式下跨种子、跨预算批量对比 Random 与 BO。</td></tr>
+        <tr><td>6. 测量可信度</td><td>在仿真模式下做“正常 → 漂移 → 恢复”三组对照。</td></tr>
+        <tr><td>7. 保存与归档</td><td>导出 JSON / JSONL / CSV 数据，结束本轮。</td></tr>
+      </table>
+      <div class="step-footer" style="border-top:0;padding-top:0">
+        <span class="muted">真机与仿真操作一致，所有数据都会自动落盘保存。</span>
+        <button class="primary" onclick="show('setup')">开始任务 1 →</button>
+      </div>
+    </div>
+    <details class="box">
+      <summary>拓展任务：UniLabOS 三色测量工作流</summary>
+      <p class="desc" style="margin:10px 0 0">完成七任务后，可按发布包 <code>integrations/unilab/README.md</code> 在 UniLabOS 0.12.3 中运行“连接 → 自检 → 测红/绿/蓝 → 保存 → 关灯断开”工作流（仿真已验证，真机需现场联调）。</p>
+    </details>
+  </section>
+
+  <!-- 任务 1 -->
+  <section id="setup">
+    <div class="page-head">
+      <h2>1. 接线与试灯</h2>
+      <p>填好组名、核对 9 根接线，然后在下方调节红/绿/蓝，确认灯光颜色与光谱峰值波段一致。</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <label class="field">小组 <input id="group" placeholder="第 1 组" style="width:140px"></label>
+        <label class="field">Random / BO 预算
+          <select id="budget">
+            <option value="12">12 次</option>
+            <option value="16">16 次</option>
+            <option value="20">20 次</option>
+            <option value="24">24 次</option>
+          </select>
+        </label>
+        <button onclick="saveSettings()">保存设置</button>
+        <span id="settingsHint" class="muted"></span>
+      </div>
+      <details>
+        <summary>更多设置（抽签种子 / 实验前预测）</summary>
+        <div class="row" style="margin-top:12px">
+          <label class="field">抽签编号（seed） <input id="seed" type="number" min="0" value="7"></label>
+        </div>
+        <div style="margin-top:12px">
+          <textarea id="prediction" placeholder="实验前猜想（选填）：例如预算较少时，人类能否比 BO 更快？"></textarea>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <h3 style="margin:0">实物接线核对（9 根公对公，断电接线）</h3>
+        <span class="muted">点击图片可放大查看细节</span>
+      </div>
+      <div class="subtabs" id="wiringTabs">
+        <button class="active" onclick="showWiringTab('overview', this)">① 电源与地（2 根）</button>
+        <button onclick="showWiringTab('led', this)">② RGB 灯（3 根）</button>
+        <button onclick="showWiringTab('sensor', this)">③ AS7341 光谱（4 根）</button>
+      </div>
+
+      <div class="wiring-pane active" data-wiring="overview">
+        <div>
+          <p class="desc" style="margin:0 0 8px">Pico 跨面包板中沟、USB 口朝上。选两排互不连通的空孔分别作 P（3.3V）和 G（GND）。</p>
+          <ul class="wire-list">
+            <li><b>3V3 OUT</b><span>→</span><b>P1</b></li>
+            <li><b>GND</b><span>→</span><b>G1</b></li>
+          </ul>
+          <p class="muted">仅使用 3.3V 供电，不接 VBUS / 5V。固定光路并遮光后再插 USB。</p>
+        </div>
+        <button class="wiring-img-btn" onclick="openWiring('overview')">
+          <img src="/wiring/overview" alt="接线总图" decoding="async">
+          <small>点击放大接线总图</small>
+        </button>
+      </div>
+
+      <div class="wiring-pane" data-wiring="led">
+        <div>
+          <p class="desc" style="margin:0 0 8px">白色三芯插头接灯板，公对公线经黑色母头连到面包板。</p>
+          <ul class="wire-list">
+            <li><b>P2 (3.3V)</b><span>→</span><b>灯 ＋</b></li>
+            <li><b>G2 (GND)</b><span>→</span><b>灯 －</b></li>
+            <li><b>GP28</b><span>→</span><b>灯 DI</b></li>
+          </ul>
+          <p class="muted" style="color:var(--warn)">灯板另一端 DO 输出留空不接。</p>
+        </div>
+        <button class="wiring-img-btn" onclick="openWiring('led')">
+          <img src="/wiring/led" alt="RGB灯接线图" loading="lazy">
+          <small>点击放大 RGB 灯接线图</small>
+        </button>
+      </div>
+
+      <div class="wiring-pane" data-wiring="sensor">
+        <div>
+          <p class="desc" style="margin:0 0 8px">白色六芯插头接 AS7341，按丝印核对以下 4 根线。</p>
+          <ul class="wire-list">
+            <li><b>P3 (3.3V)</b><span>→</span><b>VCC</b></li>
+            <li><b>G3 (GND)</b><span>→</span><b>GND</b></li>
+            <li><b>GP26</b><span>→</span><b>SDA</b></li>
+            <li><b>GP27</b><span>→</span><b>SCL</b></li>
+          </ul>
+          <p class="muted" style="color:var(--warn)">INT 和 GPIO 留空，不接电源或地。</p>
+        </div>
+        <button class="wiring-img-btn" onclick="openWiring('sensor')">
+          <img src="/wiring/sensor" alt="AS7341接线图" loading="lazy">
+          <small>点击放大传感器接线图</small>
+        </button>
+      </div>
+    </div>
+
+    <div id="livePractice">
+      <div class="block-head">
+        <h3>试灯与实时光谱</h3>
+        <p class="desc">点击下方「纯红 / 纯绿 / 纯蓝」或拖动滑块实测，确认红光约 630 nm、绿光约 515 nm、蓝光约 480 nm。</p>
+      </div>
+      <iframe id="liveConsole" class="console-frame" title="实时分光仪" src="/console?v=clean-v2"></iframe>
+    </div>
+
+    <details class="box">
+      <summary>小组讨论记录（选填）：换一种灯光颜色，哪些光谱柱子变化明显？</summary>
+      <textarea data-discussion="setup" style="margin-top:12px" placeholder="写下你们的观察（自动保存在本机浏览器）……"></textarea>
+    </details>
+
+    <div class="step-footer">
+      <span></span>
+      <button class="primary" onclick="show('quality')">下一步：2. 校准与质检 →</button>
+    </div>
+  </section>
+
+  <!-- 任务 2 -->
+  <section id="quality">
+    <div class="page-head">
+      <h2>2. 校准与质检</h2>
+      <p>固定好灯和传感器位置，先采集暗场与白光参考，再固定点连测 5 次，确认波动 &lt; 5%。</p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <button id="btnCal" class="primary busy-lock" onclick="post('/api/calibrate')">① 采集暗场与白光参考</button>
+        <button id="btnStab" class="busy-lock" onclick="post('/api/course/stability',{repeats:5})">② 固定 [0.5, 0.5, 0.5] 连测 5 次</button>
+      </div>
+      <div id="qualityResult"></div>
+      <p class="muted" style="margin:14px 0 0">未通过时先检查固定与遮光，再重新校准和测 5 次。重新校准会自动归档旧轮次。</p>
+    </div>
+
+    <details class="box">
+      <summary>小组讨论记录（选填）：为什么比赛前要先检查读数是否稳定？</summary>
+      <textarea data-discussion="quality" style="margin-top:12px" placeholder="写下你们的想法……"></textarea>
+    </details>
+
+    <div class="step-footer">
+      <button onclick="show('setup')">← 上一步</button>
+      <button id="btnToExp" onclick="show('experiment')">下一步：3. 调色比赛 →</button>
+    </div>
+  </section>
+
+  <!-- 任务 3 -->
+  <section id="experiment">
+    <div class="page-head">
+      <h2>3. 调色比赛</h2>
+      <p>先点「随机神秘盲盒目标」，再分别完成人类调色、Random 和 BO 搜索，比较谁的谱差 L 更小。</p>
+    </div>
+
+    <div class="callout row" style="justify-content:space-between">
+      <span id="initials">Random / BO 共用预算，出题后锁定；人类次数可独立选择。</span>
+      <button class="ghost" onclick="show('quality')">返回质检 ↗</button>
+    </div>
+
+    <iframe id="console" class="console-frame" title="人机调色擂台"></iframe>
+
+    <details class="box">
+      <summary>小组讨论记录（选填）：谁更接近目标？各自用了多少次？</summary>
+      <textarea data-discussion="experiment" style="margin-top:12px" placeholder="写下你们的对比观察……"></textarea>
+    </details>
+
+    <div class="step-footer">
+      <button onclick="show('quality')">← 上一步</button>
+      <button class="primary" onclick="show('analysis')">下一步：4. 独立复测 →</button>
+    </div>
+  </section>
+
+  <!-- 任务 4 -->
+  <section id="analysis">
+    <div class="page-head">
+      <h2>4. 独立复测</h2>
+      <p>固定每种方法找到的最佳配方重新测多次，检验好成绩是稳定复现还是偶然运气。</p>
+    </div>
+
+    <div class="card">
+      <h3>搜索过程曲线</h3>
+      <div class="chart-frame">
+        <div class="chart-legend">
+          <span>
+            <b style="color:#34d399">● 人类</b>
+            <b style="color:#fb923c;margin-left:12px">● Random</b>
+            <b style="color:#38bdf8;margin-left:12px">● BO</b>
+          </span>
+          <span>实线 = 单次 L(x) · 虚线 = 迄今最佳 best-so-far</span>
+        </div>
+        <canvas id="curve" width="1060" height="260" aria-label="各方法单次损失和最佳损失曲线"></canvas>
+      </div>
+      <div id="searchSummary"></div>
+    </div>
+
+    <div class="card">
+      <h3>固定最佳配方重新测量</h3>
+      <div class="row" style="margin-bottom:10px">
+        <label class="field">每配方次数 <input id="repeats" type="number" min="3" max="30" value="20"></label>
+        <button onclick="el('repeats').value=3">3 次（快速）</button>
+        <button onclick="el('repeats').value=20">20 次（课堂）</button>
+        <button class="primary busy-lock" onclick="post('/api/course/confirm',{repeats:+el('repeats').value})">开始独立复测</button>
+      </div>
+      <p class="muted" style="margin:0 0 12px">复测结果不回写搜索历史，不改变最佳配方。</p>
+      <div id="confirmation"></div>
+    </div>
+
+    <details class="box">
+      <summary>小组讨论记录（选填）：复测之后，刚才的好成绩还可靠吗？</summary>
+      <textarea data-discussion="analysis" style="margin-top:12px" placeholder="写下你们的判断……"></textarea>
+    </details>
+
+    <div class="step-footer">
+      <button onclick="show('experiment')">← 上一步</button>
+      <button onclick="show('study')">下一步：5. 多种子仿真 →</button>
+    </div>
+  </section>
+
+  <!-- 任务 5 -->
+  <section id="study">
+    <div class="page-head">
+      <h2>5. 多种子批量仿真</h2>
+      <p>固定同一目标，换多组抽签编号和预算反复比较 Random 与 BO，看统计表现而非单次输赢。</p>
+    </div>
+
+    <div id="studyModeWarn" class="callout warn" style="display:none">当前为真机模式，批量研究仅在仿真启动器中可用。</div>
+
+    <div class="card">
+      <div class="row" style="margin-bottom:14px">
+        <label class="field">抽签编号 <input id="seeds" value="1,2,3,4,5" style="width:180px"></label>
+        <label class="field">预算档位 <input id="budgets" value="8,16,24" style="width:150px"></label>
+        <button class="primary sim" onclick="startBenchmark()">开始批量仿真</button>
+      </div>
+      <div id="benchmark"></div>
+      <p class="muted" style="margin:14px 0 0">平局阈值 |ΔL| ≤ 0.001；各预算取同一最大预算轨迹前缀。仿真数据不可替代真机结论。</p>
+    </div>
+
+    <details class="box">
+      <summary>小组讨论记录（选填）：增加次数后，BO 是否每一轮都赢？</summary>
+      <textarea data-discussion="study" style="margin-top:12px" placeholder="写下你们的结论……"></textarea>
+    </details>
+
+    <div class="step-footer">
+      <button onclick="show('analysis')">← 上一步</button>
+      <button onclick="show('reliability')">下一步：6. 测量可信度 →</button>
+    </div>
+  </section>
+
+  <!-- 任务 6 -->
+  <section id="reliability">
+    <div class="page-head">
+      <h2>6. 测量可信度对照（仿真）</h2>
+      <p>保持 RGB [0.5, 0.5, 0.5] 与校准不变，依次测三组，观察测量条件漂移对读数的影响。</p>
+    </div>
+
+    <div class="card">
+      <div class="row" style="margin-bottom:12px">
+        <button id="rel-baseline" onclick="post('/api/course/reliability',{stage:'baseline'})">① 正常测量 5 次</button>
+        <button id="rel-drift" onclick="post('/api/course/reliability',{stage:'drift'})">② 加入漂移 5 次</button>
+        <button id="rel-recovery" onclick="post('/api/course/reliability',{stage:'recovery'})">③ 恢复正常 5 次</button>
+      </div>
+      <p id="reliabilityHelp" class="desc" style="margin:0 0 12px"></p>
+      <div id="reliabilityResults"></div>
+      <div id="reliabilityLesson" class="callout" style="margin:14px 0 0"></div>
+      <details>
+        <summary>助教排障参考：超时与饱和</summary>
+        <p class="muted" style="margin:10px 0 4px"><b>串口超时：</b>未收到读数不等于 0；真机应查数据线、串口占用与固件响应。</p>
+        <p class="muted" style="margin:0"><b>传感器饱和：</b>任一通道 ≥ 60000 即判饱和，需调整遮光、距离或曝光后重新校准。</p>
+      </details>
+    </div>
+
+    <details class="box">
+      <summary>小组讨论记录（选填）：RGB 没变，为什么第二组读数变了？</summary>
+      <textarea data-discussion="reliability" style="margin-top:12px" placeholder="写下你们的解释……"></textarea>
+    </details>
+
+    <div class="step-footer">
+      <button onclick="show('study')">← 上一步</button>
+      <button onclick="show('archive')">下一步：7. 保存与归档 →</button>
+    </div>
+  </section>
+
+  <!-- 任务 7 -->
+  <section id="archive">
+    <div class="page-head">
+      <h2>7. 保存与归档</h2>
+      <p>记录本组结论并下载原始数据，结束本轮后即可解锁参数开启下一轮。</p>
+    </div>
+
+    <div class="card">
+      <h3>本组结论（选填）</h3>
+      <textarea id="conclusion" placeholder="一句话写下你们最关键的发现、一个不足和下一步改进……"></textarea>
+      <div class="row" style="margin-top:12px">
+        <button class="primary" onclick="saveSettings()">保存结论</button>
+        <button onclick="post('/api/course/finish')">结束并归档本轮</button>
+        <button onclick="archives()">刷新历史记录</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>历史会话与数据下载</h3>
+      <p class="muted" style="margin:0 0 12px">JSON 为最新快照，JSONL 含完整历史，CSV 为逐次原始采样（含隐藏目标，挑战结束后再分享）。</p>
+      <div id="archives"></div>
+      <details style="margin-top:12px">
+        <summary>预览选中会话摘要</summary>
+        <pre id="archivePreview" style="margin-top:10px">点击上方任意会话按钮查看摘要。</pre>
+      </details>
+    </div>
+
+    <details class="box">
+      <summary>小组讨论记录（选填）：最有意思的发现与仍不确定的地方</summary>
+      <textarea data-discussion="archive" style="margin-top:12px" placeholder="写下你们的总结……"></textarea>
+    </details>
+
+    <div class="step-footer">
+      <button onclick="show('reliability')">← 上一步</button>
+      <button onclick="show('setup')">回到任务 1</button>
+    </div>
+  </section>
+</main>
+
+<dialog id="wiringDialog" aria-labelledby="wiringDialogTitle">
+  <div class="wiring-viewer">
+    <div class="wiring-toolbar">
+      <h3 id="wiringDialogTitle">接线图</h3>
+      <button onclick="zoomWiring(-25)" aria-label="缩小">－</button>
+      <button onclick="zoomWiring(0)">适应宽度</button>
+      <button onclick="zoomWiring(25)" aria-label="放大">＋</button>
+      <button onclick="el('wiringDialog').close()">关闭</button>
+    </div>
+    <div class="wiring-viewport" id="wiringViewport"><img id="wiringLargeImage" alt=""></div>
+  </div>
+</dialog>
+
+<script>
+history.scrollRestoration = 'manual';
+window.addEventListener('load', () => window.scrollTo(0, 0));
+
+const el = id => document.getElementById(id);
+const steps = [
+  ['setup', '1', '接线试灯'],
+  ['quality', '2', '校准质检'],
+  ['experiment', '3', '调色比赛'],
+  ['analysis', '4', '独立复测'],
+  ['study', '5', '多种子仿真'],
+  ['reliability', '6', '测量可信度'],
+  ['archive', '7', '保存归档']
+];
+let state = null, initialized = false, lastErrorKey = null, pendingPost = false;
+
+steps.forEach(([id, num, label]) => {
+  const b = document.createElement('button');
+  b.id = 'nav-' + id;
+  b.innerHTML = `<span class="step-num">${num}</span><span>${label}</span>`;
+  b.onclick = () => show(id);
+  el('nav').append(b);
 });
-refresh();setInterval(refresh,1800);
-</script></html>
+
+el('console').addEventListener('load', () => integrateConsole(el('console'), 'arena'));
+el('liveConsole').addEventListener('load', () => integrateConsole(el('liveConsole'), 'live'));
+
+function show(id) {
+  window.scrollTo(0, 0);
+  document.querySelectorAll('main > section').forEach(s => s.classList.toggle('active', s.id === id));
+  document.querySelectorAll('nav.stepper button').forEach(b => b.classList.toggle('selected', b.id === 'nav-' + id));
+  if (id === 'experiment' && !el('console').src) el('console').src = '/console?v=clean-v2';
+  if (id === 'archive') archives();
+  if (id === 'analysis' && state) plot(state.arena);
+}
+
+function showWiringTab(key, btn) {
+  document.querySelectorAll('#wiringTabs button').forEach(b => b.classList.toggle('active', b === btn));
+  document.querySelectorAll('.wiring-pane').forEach(p => p.classList.toggle('active', p.dataset.wiring === key));
+}
+
+function syncBusyButtons() {
+  const busy = pendingPost || !!state?.active_job;
+  document.querySelectorAll('.busy-lock').forEach(b => b.disabled = busy);
+  document.querySelectorAll('.sim').forEach(b => b.disabled = state?.mode !== 'SIMULATED' || busy);
+}
+
+function parseIntList(raw, label) {
+  const parts = String(raw || '').split(/[,，;\s]+/).map(s => s.trim()).filter(Boolean);
+  if (!parts.length) throw Error(label + '不能为空');
+  return parts.map(s => {
+    if (!/^\d+$/.test(s)) throw Error(label + '包含无效数字：' + s);
+    return Number(s);
+  });
+}
+
+async function startBenchmark() {
+  try {
+    const seeds = parseIntList(el('seeds').value, '抽签编号');
+    const budgets = parseIntList(el('budgets').value, '预算档位');
+    await post('/api/course/benchmark', { seeds, budgets });
+  } catch (e) {
+    notice(e.message, true);
+  }
+}
+
+let noticeTimer;
+function notice(text, error = false) {
+  clearTimeout(noticeTimer);
+  const box = el('message');
+  box.style.display = 'block';
+  box.style.background = error ? '#fef2f2' : '#111827';
+  box.style.color = error ? '#991b1b' : '#ffffff';
+  box.style.border = error ? '1px solid #fecaca' : '1px solid #111827';
+  box.textContent = text;
+  noticeTimer = setTimeout(() => { box.style.display = 'none'; }, error ? 10000 : 3500);
+}
+
+async function post(path, body = {}) {
+  pendingPost = true;
+  syncBusyButtons();
+  try {
+    const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!d.ok) throw Error(d.error?.message || '请求失败');
+    notice('操作已执行');
+    await refresh();
+    return d;
+  } catch (e) {
+    notice(e.message, true);
+  } finally {
+    pendingPost = false;
+    syncBusyButtons();
+  }
+}
+
+async function saveSettings() {
+  await post('/api/course/settings', {
+    group: el('group').value,
+    seed: +el('seed').value,
+    budget: +el('budget').value,
+    prediction: el('prediction').value,
+    conclusion: el('conclusion').value
+  });
+}
+
+function fmt(n) { return n == null ? '—' : Number(n).toFixed(4); }
+function safe(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function table(headers, rows) {
+  return '<table><tr>' + headers.map(h => '<th>' + safe(h) + '</th>').join('') + '</tr>'
+    + rows.map(row => '<tr>' + row.map(v => '<td>' + safe(v) + '</td>').join('') + '</tr>').join('') + '</table>';
+}
+
+async function refresh() {
+  try {
+    const d = await (await fetch('/api/state')).json();
+    const prevBudget = state?.course?.budget;
+    state = d.state;
+    const c = state.course;
+    if (initialized && prevBudget !== c.budget) el('budget').value = c.budget;
+    if (!initialized) {
+      ['group', 'seed', 'budget', 'prediction', 'conclusion'].forEach(k => el(k).value = c[k]);
+      initialized = true;
+    }
+
+    const modeEl = el('mode');
+    modeEl.textContent = state.mode === 'PHYSICAL' ? '真机 · PHYSICAL' : '仿真 · SIMULATED';
+    modeEl.className = 'pill ' + (state.mode === 'PHYSICAL' ? 'physical' : 'simulated');
+
+    const cal = state.calibration, q = c.stability;
+    const calEl = el('calBadge');
+    if (q?.passed) { calEl.textContent = '质检通过'; calEl.className = 'pill ok'; }
+    else if (cal) { calEl.textContent = '待质检'; calEl.className = 'pill'; }
+    else { calEl.textContent = '未校准'; calEl.className = 'pill'; }
+
+    // Single primary CTA progression on Task 2
+    el('btnCal').classList.toggle('primary', !cal);
+    el('btnStab').classList.toggle('primary', !!cal && !q?.passed);
+    el('btnToExp').classList.toggle('primary', !!q?.passed);
+
+    const jobEl = el('job');
+    if (state.active_job) {
+      jobEl.style.display = 'inline-flex';
+      jobEl.textContent = '运行中：' + state.active_job;
+    } else {
+      jobEl.style.display = 'none';
+    }
+
+    el('nav-quality')?.classList.toggle('done', !!q?.passed);
+    el('nav-experiment')?.classList.toggle('done', !!(state.arena.human || Object.keys(state.arena.ai_runs || {}).length));
+    el('nav-analysis')?.classList.toggle('done', c.confirmations.some(r => r.status === 'completed'));
+
+    syncBusyButtons();
+    const locked = !!state.arena.round_id;
+    el('seed').disabled = el('budget').disabled = locked;
+    el('settingsHint').textContent = locked ? '当前轮次已锁定参数，到任务 7 结束本轮后可修改。' : '';
+    el('studyModeWarn').style.display = state.mode === 'SIMULATED' ? 'none' : 'block';
+
+    renderQuality(cal, q);
+    el('initials').textContent = `当前算法预算：Random 与 BO 各 ${c.budget} 次（seed=${c.seed}）${locked ? ' · 本轮已锁定' : ' · 出题前可修改'}`;
+
+    const runs = { human: state.arena.human, ...state.arena.ai_runs };
+    el('searchSummary').innerHTML = renderSearch(runs);
+    el('confirmation').innerHTML = renderConfirmations(c.confirmations);
+
+    const b = c.benchmark;
+    el('benchmark').innerHTML = b
+      ? `<p class="muted" style="margin:0 0 10px">状态：<b>${safe(b.status)}</b>（已生成 ${b.runs.length} 条轨迹）</p>`
+        + table(['预算', 'BO 胜 / 平 / 负', 'Random 均值 / 最差', 'BO 均值 / 最差'],
+          b.summary.map(s => [s.budget, `${s.bo_wins} / ${s.ties} / ${s.bo_losses}`, `${fmt(s.random.mean)} / ${fmt(s.random.worst)}`, `${fmt(s.bo.mean)} / ${fmt(s.bo.worst)}`]))
+      : '<p class="desc" style="margin:0">在仿真模式下完成任务 2 质检并在任务 3 设好目标后，点击上方按钮开始对比。</p>';
+
+    renderReliability(state);
+    if (el('analysis').classList.contains('active')) plot(state.arena);
+
+    if (state.last_error) {
+      const errKey = (state.last_error.ts || '') + '|' + state.last_error.message;
+      if (errKey !== lastErrorKey) {
+        lastErrorKey = errKey;
+        notice(state.last_error.message, true);
+      }
+    } else {
+      lastErrorKey = null;
+    }
+  } catch (e) {
+    notice('操作台暂时不可达，请确认终端服务仍在运行。', true);
+  }
+}
+
+function renderQuality(cal, q) {
+  const ratio = q?.rms_relative, passed = q?.passed;
+  const statusText = q
+    ? `${q.rows.length} 次采样 · ${passed ? '稳定性通过' : q.status === 'running' ? '正在测量…' : '未通过，请检查固定和遮光'}`
+    : '等待固定点连测 5 次';
+  el('qualityResult').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="k">参考尺度 A</div>
+        <div class="v">${cal ? Math.round(cal.reference_scale) : '—'}</div>
+        <div class="muted">${cal ? '信噪比 ' + cal.snr + '× · 已采集暗场与白光' : '请先点击 ① 采集暗场与白光参考'}</div>
+      </div>
+      <div class="stat-box">
+        <div class="k">固定点相对波动（要求 &lt; 5%）</div>
+        <div class="v ${passed ? 'ok' : ratio != null ? 'warn' : ''}">${ratio == null ? '—' : (ratio * 100).toFixed(3) + '%'}</div>
+        <div class="muted">${statusText}</div>
+      </div>
+    </div>`;
+}
+
+const methodNames = { human: '人类选手', random: 'Random', bo: 'BO (GP-EI)' };
+function renderSearch(runs) {
+  const entries = Object.entries(runs).filter(([, r]) => r);
+  if (!entries.length) return '<p class="muted" style="margin:14px 0 0">尚未进行搜索，请先在任务 3 完成人类或算法搜索。</p>';
+  return '<div class="method-grid">' + entries.map(([k, r]) => `
+    <div class="method-card">
+      <div class="method-head">
+        <span>${methodNames[k]}</span>
+        <span class="swatch" style="background:rgb(${(r.best_x || [0, 0, 0]).map(v => Math.round(v * 255)).join(',')})"></span>
+      </div>
+      <div class="method-val">${fmt(r.best_loss)}</div>
+      <div class="method-meta">${r.rows.length}/${r.budget} 次 · RGB ${safe(JSON.stringify(r.best_x))}</div>
+    </div>`).join('') + '</div>';
+}
+
+function renderConfirmations(reports) {
+  if (!reports.length) return '<p class="muted" style="margin:0">点击「开始独立复测」后，这里展示每种方法的复测均值与样本标准差。</p>';
+  return reports.map(r => {
+    const entries = Object.entries(r.results);
+    const label = r.status === 'completed' ? '已完成' : r.status === 'running' ? '正在复测…' : '已中断';
+    return `<div style="margin-top:14px"><div class="muted" style="margin-bottom:6px">批次 <span class="mono">${safe(r.id)}</span> · ${label}</div>`
+      + table(['方法', '搜索最佳 L', '复测次数', '复测均值 L', '样本标准差'],
+        entries.map(([k, v]) => [methodNames[k], fmt(v.search_best), v.rows.length, fmt(v.mean), fmt(v.sample_sd)]))
+      + '</div>';
+  }).join('');
+}
+
+function renderReliability(s) {
+  const exp = s.course.reliability, stages = exp?.stages || {};
+  const valid = !!exp && exp.calibration_id === s.calibration?.id;
+  const busy = pendingPost || !!s.active_job, sim = s.mode === 'SIMULATED';
+  const baseDone = valid && stages.baseline?.status === 'completed';
+  const driftDone = valid && stages.drift?.status === 'completed';
+  const recDone = valid && stages.recovery?.status === 'completed';
+
+  el('rel-baseline').disabled = !sim || busy || !s.calibration;
+  el('rel-drift').disabled = !sim || busy || !baseDone;
+  el('rel-recovery').disabled = !sim || busy || !driftDone;
+
+  // Single primary CTA progression on Task 6
+  el('rel-baseline').classList.toggle('primary', sim && !!s.calibration && !baseDone);
+  el('rel-drift').classList.toggle('primary', sim && baseDone && !driftDone);
+  el('rel-recovery').classList.toggle('primary', sim && driftDone && !recDone);
+
+  el('reliabilityHelp').textContent = !sim
+    ? '此对照实验仅在仿真模式进行。'
+    : !s.calibration
+      ? '请先到任务 2 采集暗场与白光参考。'
+      : !valid && exp
+        ? '校准已更新，请从 ① 正常测量重新开始。'
+        : '按 ① → ② → ③ 顺序执行，对比同一配方在漂移前后的 5 次读数。';
+
+  const sums = Object.values(stages).flatMap(r => r.rows.map(row => row.raw.reduce((a, b) => a + b, 0)));
+  const max = Math.max(1, ...sums) * 1.18;
+  el('reliabilityResults').innerHTML = '<div class="rel-grid">' + [
+    ['baseline', '① 正常条件', '#059669'],
+    ['drift', '② 模拟漂移', '#ea580c'],
+    ['recovery', '③ 恢复正常', '#2563eb']
+  ].map(([key, title, color]) => {
+    const r = stages[key];
+    const values = (r?.rows || []).map(row => row.raw.reduce((a, b) => a + b, 0));
+    const st = r?.status === 'completed' ? (r.passed ? '通过质检' : '未通过质检') : r?.status === 'running' ? '采集中…' : r?.status === 'interrupted' ? '已中断' : '等待测量';
+    return `<div class="rel-card" style="--bar-color:${color}">
+      <h4>${title}</h4>
+      <div class="reading-bars">${Array.from({ length: 5 }, (_, i) =>
+        `<div style="height:${values[i] == null ? 3 : values[i] / max * 100}%;opacity:${values[i] == null ? .18 : .9}"><span>${values[i] == null ? '' : Math.round(values[i])}</span></div>`
+      ).join('')}</div>
+      <div class="rel-num">${r?.rms_relative == null ? '—' : (r.rms_relative * 100).toFixed(3) + '%'}</div>
+      <div class="muted">${st}</div>
+    </div>`;
+  }).join('') + '</div>';
+
+  el('reliabilityLesson').textContent = recDone
+    ? '结论提示：第二组 RGB 未变但读数显著波动，说明测量条件不稳定会直接污染结论；真实实验若移动装置，必须重新校准、质检并新建目标。'
+    : driftDone
+      ? '对比第一组与第二组：配方相同，条件漂移导致波动超标。请点 ③ 检查恢复后的重复性。'
+      : '柱高表示单次 8 通道总读数（同尺度）；正式质检按 8 通道相对波动 < 5% 判定。';
+}
+
+function plot(arena) {
+  const cv = el('curve');
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = Math.max(320, cv.clientWidth || 720);
+  const cssH = 260;
+  cv.width = Math.round(cssW * dpr);
+  cv.height = Math.round(cssH * dpr);
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  const runs = [arena.human, arena.ai_runs.random, arena.ai_runs.bo];
+  const colors = ['#34d399', '#fb923c', '#38bdf8'];
+  const rows = runs.filter(Boolean).flatMap(r => r.rows);
+  const max = Math.max(0.01, ...rows.map(r => r.loss)) * 1.12;
+  const n = Math.max(2, ...runs.filter(Boolean).map(r => r.rows.length));
+
+  const padL = 58, padR = 20, padT = 18, padB = 34;
+  const plotW = cssW - padL - padR, plotH = cssH - padT - padB;
+  ctx.font = '12px ui-monospace, Menlo, Consolas, monospace';
+
+  for (let j = 0; j <= 4; j++) {
+    const y = padT + (plotH * j) / 4;
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(cssW - padR, y); ctx.stroke();
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText((max * (1 - j / 4)).toFixed(3), 8, y + 4);
+  }
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText('实验次数 1 → ' + n, cssW / 2 - 44, cssH - 10);
+
+  if (!rows.length) {
+    ctx.fillStyle = '#64748b';
+    ctx.font = '14px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('完成任务 3 搜索后，这里显示各方法的单次与最佳收敛曲线', cssW / 2, padT + plotH / 2);
+    ctx.textAlign = 'start';
+    return;
+  }
+
+  runs.forEach((run, i) => {
+    if (!run || !run.rows.length) return;
+    for (const key of ['loss', 'best_so_far']) {
+      ctx.strokeStyle = colors[i];
+      ctx.fillStyle = colors[i];
+      ctx.lineWidth = key === 'best_so_far' ? 2.4 : 1.7;
+      ctx.setLineDash(key === 'loss' ? [] : [6, 5]);
+      ctx.beginPath();
+      run.rows.forEach((r, j) => {
+        const x = padL + (j / (n - 1)) * plotW;
+        const y = padT + plotH - (r[key] / max) * plotH;
+        j ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      });
+      ctx.stroke();
+      if (key === 'loss' || run.rows.length === 1) {
+        ctx.setLineDash([]);
+        run.rows.forEach((r, j) => {
+          const x = padL + (j / (n - 1)) * plotW;
+          const y = padT + plotH - (r[key] / max) * plotH;
+          ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
+        });
+      }
+    }
+  });
+  ctx.setLineDash([]);
+}
+
+async function archives() {
+  try {
+    const d = await (await fetch('/api/course/archives')).json();
+    el('archives').innerHTML = d.archives.length
+      ? d.archives.map(a => `<div class="archive-row">
+          <button onclick="preview('${a.id}')">${safe(a.id)} · ${safe(a.group || '未命名小组')} · ${safe(a.mode)}</button>
+          ${['json', 'jsonl', 'csv'].map(f => `<a class="dl-link" download="${a.id}.${f}" href="/api/course/export?id=${a.id}&format=${f}">${f.toUpperCase()}</a>`).join('')}
+        </div>`).join('')
+      : '<p class="muted">暂无历史会话</p>';
+  } catch (e) {
+    notice(e.message, true);
+  }
+}
+
+async function preview(id) {
+  const d = await (await fetch('/api/course/export?id=' + id)).json();
+  el('archivePreview').textContent = JSON.stringify({
+    session: d.course.session_id, mode: d.state.mode, group: d.course.group,
+    round_id: d.state.arena.round_id, prediction: d.course.prediction,
+    conclusion: d.course.conclusion, stability: d.course.stability,
+    confirmations: d.course.confirmations, benchmark_summary: d.course.benchmark?.summary
+  }, null, 2);
+}
+
+function integrateConsole(frame, view) {
+  const doc = frame.contentDocument;
+  if (!doc) return;
+  const style = doc.createElement('style');
+  style.textContent = `
+    :root {
+      --bg: transparent;
+      --panel: #ffffff;
+      --panel-2: #f8f9fb;
+      --border: #e4e4e7;
+      --text: #111827;
+      --muted: #52525b;
+      --accent: #2563eb;
+      --bo: #2563eb;
+      --random: #ea580c;
+      --human: #059669;
+      --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+    }
+    html, body {
+      background: transparent !important;
+      color: #111827 !important;
+      font: 400 14px/1.6 var(--font) !important;
+      font-variant-numeric: tabular-nums !important;
+      -webkit-font-smoothing: antialiased !important;
+      min-height: 0 !important;
+    }
+    body > header, .tabs, .tip-box { display: none !important; }
+    main { padding: 2px 0 8px !important; max-width: none !important; }
+    .card {
+      background: #ffffff !important;
+      border: 1px solid #e4e4e7 !important;
+      border-radius: 10px !important;
+      box-shadow: none !important;
+      padding: 20px !important;
+    }
+    .card-title { font-size: 16px !important; font-weight: 600 !important; margin-bottom: 14px !important; }
+    .muted { font-size: 12px !important; color: #52525b !important; }
+    .grid-2 { grid-template-columns: minmax(300px, 360px) 1fr !important; gap: 18px !important; }
+    .grid-arena { grid-template-columns: minmax(320px, 390px) 1fr !important; gap: 18px !important; }
+    @media (max-width: 960px) { .grid-2, .grid-arena { grid-template-columns: 1fr !important; } }
+    button {
+      font: 600 14px/1.35 var(--font) !important;
+      background: #ffffff !important;
+      color: #111827 !important;
+      border: 1px solid #d4d4d8 !important;
+      border-radius: 7px !important;
+      padding: 8px 14px !important;
+      box-shadow: none !important;
+    }
+    button.preset-btn { font-size: 12px !important; font-weight: 600 !important; padding: 7px 6px !important; }
+    button:hover:not(:disabled) { background: #f4f4f5 !important; border-color: #a1a1aa !important; }
+    button.primary { background: #2563eb !important; border-color: #2563eb !important; color: #ffffff !important; }
+    button.primary:hover:not(:disabled) { background: #1d4ed8 !important; }
+    button.emerald { background: #059669 !important; border-color: #059669 !important; color: #ffffff !important; }
+    button.orange { background: #ea580c !important; border-color: #ea580c !important; color: #ffffff !important; }
+    button.danger { background: #fef2f2 !important; border-color: #fecaca !important; color: #b91c1c !important; }
+    button.active-toggle { background: #ecfdf5 !important; border-color: #a7f3d0 !important; color: #047857 !important; }
+    input[type="text"], input[type="number"], select {
+      font: 400 14px/1.4 var(--font) !important;
+      background: #ffffff !important;
+      color: #111827 !important;
+      border: 1px solid #d4d4d8 !important;
+      border-radius: 7px !important;
+    }
+    .slider-row label, .slider-val { font-size: 14px !important; font-weight: 600 !important; }
+    .rgb-readout { font-size: 13px !important; line-height: 1.65 !important; }
+    .metric, .swatch-card, .brain-item {
+      background: #f8f9fb !important;
+      border: 1px solid #e4e4e7 !important;
+      border-radius: 8px !important;
+      color: #111827 !important;
+    }
+    .metric .k { font-size: 12px !important; font-weight: 600 !important; color: #52525b !important; }
+    .metric .v { font: 600 18px/1.35 var(--font) !important; }
+    .swatch-box { border-color: rgba(0,0,0,0.16) !important; color: #ffffff !important; }
+    .swatch-meta .label { font-size: 12px !important; font-weight: 600 !important; color: #52525b !important; }
+    .swatch-meta .score { font: 600 20px/1.3 var(--font) !important; }
+    .swatch-meta .sub { font-size: 12px !important; color: #52525b !important; }
+    #mSat, #liveStreamStatus { filter: brightness(0.72) saturate(1.3); }
+    .led-orb { border: 1px solid #d4d4d8 !important; }
+    .chart-box {
+      background: #0f172a !important;
+      border: 1px solid #1e293b !important;
+      border-radius: 10px !important;
+      padding: 12px !important;
+    }
+    .banner-error {
+      background: #fef2f2 !important;
+      border-color: #fecaca !important;
+      color: #991b1b !important;
+      font-size: 14px !important;
+    }
+    table { font-size: 14px !important; }
+    th { font-size: 12px !important; font-weight: 600 !important; color: #52525b !important; }
+    th, td { border-bottom-color: #e4e4e7 !important; padding: 8px 10px !important; }
+  `;
+  doc.head.append(style);
+  // Strip noisy decorative emojis from buttons & headings inside classroom mode for a unified tone
+  const cleanLabel = (id, text) => { const node = doc.getElementById(id); if (node) node.textContent = text; };
+  cleanLabel('btnLiveOnce', '单次实测');
+  cleanLabel('btnSnapSave', '锁定对比虚线');
+  cleanLabel('btnMysteryTarget', '随机神秘目标');
+  cleanLabel('btnAmbientTarget', '采集环境光目标');
+  cleanLabel('btnCustomTarget', '设为自定义目标');
+  cleanLabel('btnReveal', '揭晓谜底');
+  cleanLabel('btnRunRandom', '运行 Random');
+  cleanLabel('btnRunBo', '运行 BO');
+  cleanLabel('btnStopAi', '停止');
+  doc.querySelector('[data-tab="' + view + '"]')?.click();
+  const resize = () => {
+    const m = doc.querySelector('main');
+    if (m && frame.offsetParent !== null) frame.style.height = Math.ceil(m.getBoundingClientRect().bottom + 20) + 'px';
+  };
+  new ResizeObserver(resize).observe(doc.body);
+  resize();
+}
+
+const wiringImages = {
+  overview: { title: '① Pico 与电源/地接线总图', url: '/wiring/overview' },
+  led: { title: '② RGB 灯三根接线', url: '/wiring/led' },
+  sensor: { title: '③ AS7341 光谱四根接线', url: '/wiring/sensor' }
+};
+let wiringZoom = 100, wiringPrevOverflow = '';
+function openWiring(key) {
+  const item = wiringImages[key];
+  if (!item) return;
+  el('wiringDialogTitle').textContent = item.title;
+  const img = el('wiringLargeImage');
+  img.src = item.url; img.alt = item.title;
+  zoomWiring(0);
+  el('wiringViewport').scrollTo(0, 0);
+  wiringPrevOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+  el('wiringDialog').showModal();
+}
+function zoomWiring(delta) {
+  wiringZoom = delta === 0 ? 100 : Math.max(50, Math.min(250, wiringZoom + delta));
+  el('wiringLargeImage').style.width = wiringZoom + '%';
+}
+el('wiringDialog').addEventListener('close', () => { document.body.style.overflow = wiringPrevOverflow; });
+el('wiringDialog').addEventListener('click', e => { if (e.target === el('wiringDialog')) el('wiringDialog').close(); });
+el('message').onclick = () => { el('message').style.display = 'none'; };
+
+document.querySelectorAll('[data-discussion]').forEach(t => {
+  const key = 'pocket-discussion-v1-' + t.dataset.discussion;
+  try { t.value = localStorage.getItem(key) || ''; } catch (_) {}
+  t.addEventListener('input', () => { try { localStorage.setItem(key, t.value); } catch (_) {} });
+});
+
+show('setup');
+refresh();
+setInterval(refresh, 1800);
+</script>
+</body>
+</html>
