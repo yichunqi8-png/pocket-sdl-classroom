@@ -108,6 +108,8 @@ class DeviceFacadeTests(unittest.TestCase):
             disc = dev.disconnect()
             self.assertTrue(disc["success"])
             self.assertFalse(dev.connected)
+            self.assertFalse(dev.calibrated)
+            self.assertIsNone(dev.last_loss)
             self.assertEqual(dev.status, "Offline")
 
     def test_grid_validation_and_optional_snap(self):
