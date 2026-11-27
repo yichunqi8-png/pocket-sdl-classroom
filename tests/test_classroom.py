@@ -88,6 +88,7 @@ class ClassroomTests(unittest.TestCase):
         for s in b['summary']:self.assertEqual(s['bo_wins']+s['ties']+s['bo_losses'],2)
         self.e.mode='PHYSICAL'
         with self.assertRaises(LabError):self.e.fault_set('timeout')
+        self.e.finish_round()
         with self.assertRaises(LabError):self.e.benchmark_start()
     def test_stop_confirmation_preserves_search(self):
         self.prepare();self.e.arena_human_measure([.3,.6,.4])
