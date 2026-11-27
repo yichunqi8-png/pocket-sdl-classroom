@@ -807,6 +807,7 @@
     ];
 
     let appState = null;
+    let lastErrorKey = null;
     let showNormalized = false;
     let liveSnapshot = null;
     let audioEnabled = false;
@@ -896,13 +897,13 @@
         const y = yOf(val);
         const txt = isNorm ? val.toFixed(2) : Math.round(val).toString();
         parts.push(`<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.08)" />`);
-        parts.push(`<text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="#8998b0" font-size="11" font-family="ui-monospace,monospace">${txt}</text>`);
+        parts.push(`<text x="${padL - 8}" y="${y + 4}" text-anchor="end" fill="#94a3b8" font-size="12" font-family="ui-monospace,monospace">${txt}</text>`);
       }
 
       if (!isNorm && satLine && satLine <= maxVal * 1.1) {
         const sy = yOf(satLine);
         parts.push(`<line x1="${padL}" y1="${sy}" x2="${W - padR}" y2="${sy}" stroke="#f87171" stroke-dasharray="6 4" stroke-width="1.5" />`);
-        parts.push(`<text x="${W - padR}" y="${sy - 6}" text-anchor="end" fill="#f87171" font-size="11">饱和防线 60000</text>`);
+        parts.push(`<text x="${W - padR}" y="${sy - 6}" text-anchor="end" fill="#f87171" font-size="12">饱和防线 60000</text>`);
       }
 
       // Bars
@@ -914,9 +915,9 @@
         const h = Math.max(2, padT + plotH - y);
         parts.push(`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="6" fill="${ch.color}" fill-opacity="0.88" />`);
         const lbl = isNorm ? val.toFixed(2) : Math.round(val).toString();
-        parts.push(`<text x="${cx.toFixed(1)}" y="${Math.max(14, y - 6).toFixed(1)}" text-anchor="middle" fill="#dce5f5" font-size="11" font-family="ui-monospace,monospace">${values ? lbl : "-"}</text>`);
-        parts.push(`<text x="${cx.toFixed(1)}" y="${H - 22}" text-anchor="middle" fill="#cbd5e1" font-size="12" font-weight="700">${ch.label}nm</text>`);
-        parts.push(`<text x="${cx.toFixed(1)}" y="${H - 7}" text-anchor="middle" fill="#64748b" font-size="10">F${idx + 1}</text>`);
+        parts.push(`<text x="${cx.toFixed(1)}" y="${Math.max(14, y - 6).toFixed(1)}" text-anchor="middle" fill="#e2e8f0" font-size="12" font-family="ui-monospace,monospace">${values ? lbl : "-"}</text>`);
+        parts.push(`<text x="${cx.toFixed(1)}" y="${H - 22}" text-anchor="middle" fill="#cbd5e1" font-size="13" font-weight="600">${ch.label}nm</text>`);
+        parts.push(`<text x="${cx.toFixed(1)}" y="${H - 6}" text-anchor="middle" fill="#94a3b8" font-size="11">F${idx + 1}</text>`);
       });
 
       // Overlay polyline (Target or Snapshot)
@@ -1036,7 +1037,8 @@
         overlay,
         satLine: appState ? appState.saturation_threshold : 60000
       });
-      document.getElementById("liveSourceTag").textContent = `${sample.source} · ${sample.ts.slice(11, 19)}`;
+      const localTime = sample.ts ? new Date(sample.ts).toLocaleTimeString([], { hour12: false }) : "--:--:--";
+      document.getElementById("liveSourceTag").textContent = `${sample.source} · ${localTime}`;
       document.getElementById("mPeak").textContent = `${sample.peak_nm} nm`;
       document.getElementById("mMaxRaw").textContent = sample.max_raw.toLocaleString();
       const satPct = (sample.saturation_ratio * 100).toFixed(1);
@@ -1231,8 +1233,9 @@
         select.title=state.arena.round_id?"本轮已出题；到任务七结束本轮后可修改":"Random和BO各测相同次数；出题前可修改";
         document.querySelector('[data-tab="queue"]').style.display="none";
       }
+      const prevState = appState;
       appState = state;
-      document.getElementById("btnHumanMeasure").textContent = state.mode === "PHYSICAL" ? "🧪 点亮真灯并实测一次" : "🧪 仿真测量一次";
+      document.getElementById("btnHumanMeasure").textContent = state.mode === "PHYSICAL" ? "点亮真灯并实测一次" : "仿真测量一次";
       const modeEl = document.getElementById("badgeMode");
       modeEl.textContent = state.mode === "PHYSICAL"
         ? `PHYSICAL 真机 (${state.serial_port || "USB"})`
@@ -1258,7 +1261,14 @@
       }
 
       if (state.last_error) {
-        showError(state.last_error.code, state.last_error.message);
+        const errKey = `${state.last_error.ts || ""}|${state.last_error.code || ""}|${state.last_error.message || ""}`;
+        if (errKey !== lastErrorKey) {
+          lastErrorKey = errKey;
+          showError(state.last_error.code, state.last_error.message);
+        }
+      } else {
+        lastErrorKey = null;
+        hideError();
       }
 
       const streamBtn = document.getElementById("btnLiveStream");
@@ -1271,7 +1281,11 @@
         document.getElementById("mobileUrlText").textContent = state.mobile_url;
       }
 
-      syncLiveControls(state.live_x || [0, 0, 0]);
+      const nextLiveX = state.live_x || [0, 0, 0];
+      const prevLiveKey = prevState && prevState.live_x ? prevState.live_x.join(",") : null;
+      if (!prevState || nextLiveX.join(",") !== prevLiveKey) {
+        syncLiveControls(nextLiveX);
+      }
       renderSample(state.latest_sample);
       renderArena(state.arena);
       renderQueue(state.queue);

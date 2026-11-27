@@ -1,29 +1,14 @@
-# Pocket SDL Classroom 学生版
-
-下载Release中的启动包并解压。每位同学在自己的电脑启动，不需要访问教师电脑的localhost。
-
-- 先安装Python 3.12（支持3.10+）。Windows安装时勾选Add Python to PATH。
-- 无设备：Mac双击Start Simulation.command；Windows双击Start Simulation.bat。
-- 有设备：双击Start Pocket SDL对应文件。设备固件由助教提前配置，失败不会自动切仿真。
-- 首次启动会创建独立环境并联网安装依赖，之后可本地使用。保留终端窗口；浏览器自动打开。
-- 如Mac禁止直接打开：在终端运行 `bash "Start Simulation.command"`。
-- 页面包含七任务、图文接线、人类6/12/18次、Random和BO共同12/16/20/24次；讨论记录不强制填写。
-- 本地实验记录在classroom-data；讨论填写保存在浏览器，换电脑不会自动同步。
-- UniLabOS另需独立环境，见[integrations/unilab/README.md](integrations/unilab/README.md)。
-- 本项目基于ZiWei09/pocket-sdl，保留原许可证与来源。下方为原项目参考说明。
-
----
-
 # Pocket SDL Classroom · 独立课程版
 
-**先读 [课程版使用说明](学生使用说明.md)**。本版增加稳定性准入、统一预算、独立复测、持久归档、多种子仿真研究和手机局域网入口。来源见 [UPSTREAM.md](UPSTREAM.md)，保留原项目许可证。
+**先读 [学生与教师使用说明](学生使用说明.md) 与 [七任务操作卡](任务操作卡.md)**。本仓库基于 `ZiWei09/pocket-sdl`（见 [UPSTREAM.md](UPSTREAM.md)，保留原 MIT 许可证），增加七任务课程工作台、稳定性准入、人类独立预算、独立复测、持久归档、多种子仿真研究、测量可信度对照以及 UniLabOS 三色工作流拓展。
 
-- 真机：双击 `Start Pocket SDL.command`（macOS）或 `.bat`（Windows），端口 8770/8771。
-- 无设备：双击 `Start Simulation.command` 或 `.bat`，端口 8772/8773，明确标注 SIMULATED。
-- 命令行：`python -m workshop.course_server --mode simulated --port 8772 --audience-port 8773`。
-- 教师页绑定本机回环；观众页绑定局域网，只能出题和读取状态。`--audience-port 0` 关闭手机入口。
-- 数据默认写入 `classroom-data/`；新启动不会沿用旧校准。原始采样 CSV、完整历史 JSONL、最新快照 JSON 可从课程页下载。
-- 接线以 [最新接线说明](docs/最新接线说明.md) 为准；下方保留上游技术说明，旧版网页启动命令不含新增课程功能。
+- **环境要求**：先安装 Python 3.12（支持 3.10+）；Windows 安装时勾选 `Add Python to PATH`。首次启动会创建独立 `.student-venv` 并联网安装依赖，之后可本地离线使用。
+- **真机启动**：Mac 双击 `Start Pocket SDL.command`；Windows 双击 `Start Pocket SDL.bat`（监听 `http://127.0.0.1:8770/`）。设备固件由助教提前配置，自动按序列号选择与暗场自检，**失败不会自动切仿真**。
+- **无设备仿真**：Mac 双击 `Start Simulation.command`；Windows 双击 `Start Simulation.bat`（监听 `http://127.0.0.1:8772/`，界面明确标注 `SIMULATED`）。如 Mac 禁止直接打开，在终端运行 `bash "Start Simulation.command"`。
+- **可选局域网观众端口**：双击启动器默认仅绑定本机回环（`--audience-port 0`，关闭局域网入口）；如需在课堂启用手机端出题提交，可通过命令行开启：
+  `python -m workshop.course_server --mode simulated --port 8772 --audience-port 8773`（真机为 `--port 8770 --audience-port 8771`），手机端仅允许访问 `/mobile` 出题与读取状态。
+- **七任务与数据保存**：页面包含七任务、图文接线、人类 6/12/18 次独立预算、Random 和 BO 共同 12/16/20/24 次；讨论记录选填并保存在浏览器本地。实验数据默认写入 `classroom-data/`（原始采样 CSV、完整历史 JSONL、最新快照 JSON），新启动不会沿用旧校准。
+- **接线与拓展**：实物接线以 [最新接线说明](docs/最新接线说明.md) 为准；UniLabOS 三色拓展需独立环境，见 [integrations/unilab/README.md](integrations/unilab/README.md)。下方保留上游技术参考说明。
 
 ---
 
@@ -302,10 +287,3 @@ Ctrl-C 同样保留故障目录；恢复必须排查原因、重新自检并使�
 ## 许可证
 
 本项目基于 [MIT License](LICENSE) 开源。
-
-## 学生一键启动（真机）
-
-电脑预先安装 Python 3.10+（推荐 3.12），板子预先配置课程固件。
-Mac 双击 `Start Pocket SDL.command`；Windows 双击 `Start Pocket SDL.bat`。
-首次联网建立独立环境，之后自动选择 Pico、做暗场自检并打开 PHYSICAL 操作台。
-多板时按序列号选择，不自动刷机，不回退仿真。详细步骤及课堂边界见 [学生使用说明](学生使用说明.md)。

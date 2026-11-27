@@ -130,6 +130,8 @@ def make_handler(engine, mobile_url):
                 while not engine._stop_all.is_set():
                     try:
                         item = sub.get(timeout=15.0)
+                        if item is None:
+                            break
                         body = json.dumps(item, ensure_ascii=False, allow_nan=False)
                         self.wfile.write(f"event: {item['event']}\ndata: {body}\n\n".encode("utf-8"))
                         self.wfile.flush()

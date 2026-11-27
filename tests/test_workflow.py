@@ -103,6 +103,14 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(LabError):
             run(self.cal_path, "bo", self.root / "physical", port="TEST")
 
+    def test_prepare_saturation_records_raw_in_attempts(self):
+        dev = SimDevice(self.config, saturated_at=1)
+        with self.assertRaisesRegex(LabError, "SATURATED"):
+            prepare(self.config, self.root / "sat-prepare", device=dev)
+        attempts = [json.loads(line) for line in (self.root / "sat-prepare" / "attempts.jsonl").read_text(encoding="utf-8").splitlines()]
+        self.assertEqual(len(attempts), 1)
+        self.assertEqual(attempts[0]["raw"], [65535] * 8)
+
 
 if __name__ == "__main__":
     unittest.main()

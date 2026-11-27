@@ -1,7 +1,9 @@
 """Physical-only student launcher. Never flash firmware or fall back to simulation."""
 import argparse
 import json
+import os
 import sys
+import time
 import webbrowser
 from http.server import ThreadingHTTPServer
 from urllib.request import urlopen
@@ -65,6 +67,8 @@ def probe(ports, config):
         finally:
             if dev is not None:
                 dev.close()
+                if os.name == 'nt':
+                    time.sleep(0.15)
     raise LabError('DEVICE_CHECK_FAILED', '\n'.join(errors) + '\n检查串口占用、固件和 AS7341 接线；修改接线前拔掉 USB。')
 
 

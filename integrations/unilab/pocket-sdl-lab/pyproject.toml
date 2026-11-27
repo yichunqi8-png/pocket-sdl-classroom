@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pocket-sdl-lab"
-version = "1.0.0"
+version = "1.1.0"
 description = "Uni-Lab OS device package for Pocket SDL (Pico H + AS7341 + WS2812B spectral closed-loop module)"
 readme = "DEVICE_PACKAGE_REQUIREMENTS.md"
 license = { text = "MIT" }

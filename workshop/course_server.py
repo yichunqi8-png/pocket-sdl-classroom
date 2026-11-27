@@ -98,11 +98,13 @@ def main(argv=None):
     if not 1<=args.port<=65535 or not 0<=args.audience_port<=65535 or args.port==args.audience_port:
         p.error('请选择不同的有效端口')
     teacher=mobile=engine=None
+    mobile_started=False
     url=f'http://127.0.0.1:{args.port}/'
     try:
         # Reserve both ports BEFORE touching hardware.
         try:
             teacher=ThreadingHTTPServer(('127.0.0.1',args.port),course_handler(None,0))
+            teacher.daemon_threads=True
         except OSError:
             from urllib.request import urlopen
             try:
@@ -117,6 +119,7 @@ def main(argv=None):
             raise LabError('PORT_BUSY', f'端口 {args.port} 已被占用；请关闭旧服务或选择不同端口')
         if args.audience_port:
             mobile=ThreadingHTTPServer(('0.0.0.0',args.audience_port),course_handler(None,0,True))
+            mobile.daemon_threads=True
         serial_port=None
         if args.mode=='physical':
             # Do not interrupt the legacy physical launcher which may own the same board.
@@ -135,6 +138,7 @@ def main(argv=None):
         if mobile:
             mobile.RequestHandlerClass=course_handler(engine,args.audience_port,True)
             threading.Thread(target=mobile.serve_forever,daemon=True).start()
+            mobile_started=True
         print(f'Pocket SDL Classroom [{engine.mode}]\n教师操作台：{url}\n记录目录：{engine.data_dir}\n保持窗口打开；Ctrl+C 退出。',flush=True)
         if mobile: print(f'同 Wi-Fi 手机入口：http://{detect_lan_ip()}:{args.audience_port}/mobile',flush=True)
         if not args.no_open: webbrowser.open(url)
@@ -151,7 +155,7 @@ def main(argv=None):
             if engine._worker_thread: engine._worker_thread.join(timeout=10)
             engine.checkpoint('shutdown')
         if mobile:
-            if engine: mobile.shutdown()
+            if mobile_started: mobile.shutdown()
             mobile.server_close()
         if teacher: teacher.server_close()
     return 0

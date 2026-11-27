@@ -4,7 +4,9 @@ import unittest
 import numpy as np
 
 from pocket_sdl import LabError
-from pocket_sdl.core import GRID, calibration_stats, led_values, relative_stability, spectral_loss, validate_raw, validate_x
+from pocket_sdl.config import load_config
+from pocket_sdl.core import CHANNELS_NM, GRID, calibration_stats, led_values, relative_stability, spectral_loss, validate_raw, validate_x
+from pocket_sdl.simulated import SimDevice
 
 
 class CoreTests(unittest.TestCase):
@@ -57,6 +59,15 @@ class CoreTests(unittest.TestCase):
         self.assertAlmostEqual(result["rms_relative"], math.sqrt(2) / np.linalg.norm(mean))
         zero = relative_stability([[0] * 8, [1] + [0] * 7], [0] * 8)
         self.assertAlmostEqual(zero["rms"], 0.5)
+
+    def test_simulated_rgb_spectral_peaks(self):
+        dev = SimDevice(load_config({"mode": "SIMULATED"}))
+        try:
+            for rgb, expected_nm in (([1, 0, 0], 630), ([0, 1, 0], 515), ([0, 0, 1], 480)):
+                raw = dev.measure(rgb)
+                self.assertEqual(CHANNELS_NM[int(np.argmax(raw))], expected_nm)
+        finally:
+            dev.close()
 
 
 if __name__ == "__main__":
