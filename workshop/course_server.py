@@ -1,6 +1,7 @@
 """Loopback teacher console + restricted LAN audience listener."""
 import argparse
 import json
+import sys
 import threading
 import webbrowser
 from http.server import ThreadingHTTPServer
@@ -87,6 +88,10 @@ def course_handler(engine, audience_port, audience=False):
 
 
 def main(argv=None):
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, 'reconfigure'):
+            try: stream.reconfigure(errors='replace')
+            except OSError: pass
     p=argparse.ArgumentParser(description='Pocket SDL Classroom 独立课程版')
     p.add_argument('--mode',choices=['physical','simulated'],default='physical')
     p.add_argument('--port',type=int,default=8770)
