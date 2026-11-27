@@ -1,5 +1,7 @@
 # Pocket SDL Classroom · 独立课程版
 
+**维护与联系**：[Qqqyc（yichunqi8-png）](https://github.com/yichunqi8-png)
+
 **先读 [学生与教师使用说明](学生使用说明.md) 与 [七任务操作卡](任务操作卡.md)**。本仓库基于 `ZiWei09/pocket-sdl`（见 [UPSTREAM.md](UPSTREAM.md)，保留原 MIT 许可证），增加七任务课程工作台、稳定性准入、人类独立预算、独立复测、持久归档、多种子真机／仿真对比、测量可信度对照以及 UniLabOS 三色工作流拓展。
 
 - **环境要求**：先安装 Python 3.12（支持 3.10+）；Windows 安装时勾选 `Add Python to PATH`。首次启动会创建独立 `.student-venv` 并联网安装依赖，之后可本地离线使用。
