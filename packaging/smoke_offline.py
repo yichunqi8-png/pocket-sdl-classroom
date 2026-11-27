@@ -6,8 +6,11 @@ import shutil
 import socket
 import subprocess
 import tempfile
+import sys
 import time
 from urllib.request import Request, urlopen
+
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 root = Path(__file__).resolve().parents[1]
 with tempfile.TemporaryDirectory(prefix='Pocket SDL 离线 ') as tmp:
