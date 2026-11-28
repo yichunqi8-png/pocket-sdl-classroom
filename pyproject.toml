@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pocket-sdl"
+version = "1.0.0"
+description = "Pocket Self-Driving Lab: Pico H + AS7341 + WS2812B spectral closed-loop device driver, workflow, and workshop suite"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24,<3",
+    "pyserial>=3.5",
+]
+
+[project.scripts]
+pocket-sdl = "pocket_sdl.cli:main"
+
+[tool.setuptools]
+packages = ["pocket_sdl"]

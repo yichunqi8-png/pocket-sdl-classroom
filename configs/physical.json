@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "mode": "PHYSICAL",
+  "protocol_version": 1,
+  "seed": 7,
+  "sensor": {
+    "address": 57,
+    "atime": 100,
+    "astep": 999,
+    "gain": "GAIN_16X",
+    "saturation_raw_exclusive": 60000
+  },
+  "led": {
+    "max_channel": 80,
+    "settle_ms": 50
+  },
+  "calibration": {
+    "reference_x": [1.0, 1.0, 1.0],
+    "dark_repeats": 3,
+    "reference_repeats": 3,
+    "target_x": [0.3, 0.6, 0.4],
+    "target_repeats": 3,
+    "stability_repeats": 5,
+    "stability_rms_relative_max": 0.05
+  },
+  "measurement": {
+    "budget": 24,
+    "initial_candidates": 4,
+    "minimum_valid": 20,
+    "confirm_repeats": 3
+  },
+  "optimizer": {
+    "length_scale": 0.35,
+    "noise": 0.0025,
+    "xi": 0.01
+  }
+}

@@ -1,0 +1,6 @@
+package:
+  name: pocket_sdl_lab
+
+workflows:
+  - workflow_uuid: aad9d030-d6b7-4183-9681-92efb29fcd51
+    source: pocket_sdl_lab/workflows/three_color.py

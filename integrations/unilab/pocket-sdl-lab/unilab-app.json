@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "startup": {
+    "graph": "deployment/graphs/dry-run.json",
+    "config": "deployment/local_config.py",
+    "backend": "ros",
+    "actionMode": "real",
+    "extraArgs": [
+      "--external_devices_only",
+      "--ros_discovery_server",
+      "off"
+    ]
+  }
+}

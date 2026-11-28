@@ -1,0 +1,26 @@
+Pocket SDL 课堂工作台 · 离线启动包
+
+无需安装 Python、Git、依赖；运行时不访问 GitHub，不需要 VPN。
+下载与自己的电脑对应的 ZIP，完整解压后使用，不要在压缩包内直接运行。
+保留 PocketSDL 文件夹完整，不能只拷贝 exe 或删除 _internal。
+
+1. 无设备：双击 Start Simulation（仿真）。
+2. 设备已由助教配置固件：普通插入 USB，双击 Start Real Device（真机）。
+   不按 BOOTSEL。如出现 RPI-RP2 磁盘，交给助教配置固件。
+3. 浏览器会自动打开；未打开时访问：
+   仿真 http://127.0.0.1:8772/；真机 http://127.0.0.1:8770/。
+4. 保持终端窗口打开。结束时先点击网页“停止并关灯”，再在终端按 Ctrl+C。
+5. 真机连接失败不会自动转为仿真，请保留错误窗口给助教。
+
+数据保存在当前用户目录，不会因重新解压安装包而删除：
+Windows：%LOCALAPPDATA%\Pocket SDL\classroom-data
+Mac：~/Library/Application Support/Pocket SDL/classroom-data
+也可在任务七导出实验记录。
+
+Windows：选 Windows-x64 包，适用于 Windows 10/11 x64。
+Mac：“关于本机”里显示 Apple M 系列，选 Mac-Apple；显示 Intel，选 Mac-Intel。
+Mac 首次打开可能提示开发者未验证。确认是老师提供的包后，在系统设置→隐私与安全性按系统提示允许打开。
+如学校电脑策略禁止运行，联系助教/管理员；无需关闭全局安全防护。
+
+本包包含课堂工作台与真机驱动；不包含 UniLabOS 服务或固件自动刷写。
+需要现代浏览器（Chrome / Edge / Safari）。
