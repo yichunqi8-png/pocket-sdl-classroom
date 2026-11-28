@@ -1,4 +1,6 @@
 package:
   name: pocket_sdl_lab
 
-# UniLabOS 0.12.3通过AST扫描@workflow，模板见pocket_sdl_lab/workflows/three_color.py
+workflows:
+  - workflow_uuid: aad9d030-d6b7-4183-9681-92efb29fcd51
+    source: pocket_sdl_lab/workflows/three_color.py

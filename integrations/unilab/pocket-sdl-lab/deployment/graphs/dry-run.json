@@ -2,10 +2,10 @@
   "nodes": [
     {
       "id": "pico_spectro_01",
+      "uuid": "f916d6a1-f209-4307-8aa8-a94ea5f3e2e4",
       "name": "Pico 光谱闭环模块 1（仿真）",
       "type": "device",
       "class": "community.pocket_sdl_lab.pico_spectro",
-      "parent": null,
       "config": {
         "mode": "SIMULATED",
         "port": "auto",
@@ -14,8 +14,9 @@
         "auto_off_after_measure": true,
         "snap_to_grid": false,
         "probe_timeout": 1.5
-      }
+      },
+      "data": {}
     }
   ],
-  "edges": []
+  "links": []
 }

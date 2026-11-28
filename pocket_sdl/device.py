@@ -104,6 +104,40 @@ def _normalize_rgb(value: Sequence[float], snap_to_grid: bool) -> List[float]:
     return list(validate_x(snapped))
 
 
+def list_serial_ports() -> List[Dict[str, Any]]:
+    """列出本机串口，按 Pico 数据口优先排序，供操作者选择真实硬件端口。
+
+    返回：每个串口的设备名、描述、厂商、序列号及是否被识别为 Pico 数据口；
+    不打开任何串口，也不据此建立连接。
+    """
+
+    try:
+        from serial.tools import list_ports
+    except ImportError as error:
+        raise LabError("SERIAL_IO", "缺少 pyserial，请先安装依赖") from error
+
+    rows: List[Dict[str, Any]] = []
+    for info in sorted(list(list_ports.comports()), key=_port_sort_key):
+        vid = getattr(info, "vid", None)
+        desc = getattr(info, "description", "") or ""
+        hwid = getattr(info, "hwid", "") or ""
+        lowered = (desc + " " + hwid).lower()
+        rows.append(
+            {
+                "device": str(getattr(info, "device", "")),
+                "description": desc,
+                "manufacturer": getattr(info, "manufacturer", None),
+                "serial_number": getattr(info, "serial_number", None),
+                "vid": vid,
+                "pid": getattr(info, "pid", None),
+                "is_pico": vid in PICO_USB_VIDS
+                or any(tok in lowered for tok in ("pico", "circuitpython", "rp2040")),
+                "is_console": "console" in lowered or "repl" in lowered,
+            }
+        )
+    return rows
+
+
 def discover_pico_port(
     config: Dict[str, Any],
     serial_number: Optional[str] = None,
@@ -322,6 +356,24 @@ class PicoSpectroDevice:
             return bool(self._dev.off())
         except Exception:
             return False
+
+    def set_port(self, port: Optional[str]) -> None:
+        """在连接前指定真实硬件串口；``None``/``""``/``"auto"`` 表示自动探测。
+
+        参数：``port`` 是串口设备名或 auto。返回：无。异常：已连接或仿真模式下
+        指定物理串口时抛出 ``LabError``，避免静默切换到一个未生效的端口。
+        """
+
+        normalized = None if port in (None, "", "auto") else str(port)
+        if normalized is not None and self._mode != "PHYSICAL":
+            raise LabError(
+                "CONFIG_INVALID", "只有 PHYSICAL 模式才能指定物理串口 port"
+            )
+        with self._lock:
+            if self._connected:
+                raise LabError("CONFIG_INVALID", "请先断开设备，再切换串口")
+            self._requested_port = normalized
+            self._resolved_port = ""
 
     # ------------------------------------------------------------------
     # 对外动作（@action，带参数范围、单位说明及稳定 success/message/data 结构）

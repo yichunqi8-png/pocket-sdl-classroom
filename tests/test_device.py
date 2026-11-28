@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 from pocket_sdl import LabError
 from pocket_sdl.config import expected_device_base, expected_device_fingerprint, load_config
-from pocket_sdl.device import PicoSpectroDevice, _port_sort_key, discover_pico_port
+from pocket_sdl.device import PicoSpectroDevice, _port_sort_key, discover_pico_port, list_serial_ports
 from pocket_sdl.workflow import read_calibration
 from tests.fakes import FailingDevice
 
@@ -264,8 +264,49 @@ class PortDiscoveryTests(unittest.TestCase):
         ):
             discover_pico_port(self.config, serial_number="SN-X")
 
+    def test_list_serial_ports_and_set_port(self):
+        ports = [
+            FakePortInfo(device="/dev/ttyUSB0", vid=0x10C4, pid=0xEA60, description="CP2102 UART", manufacturer="SiLabs", hwid="", serial_number="OTHER"),
+            FakePortInfo(device="/dev/ttyACM0", vid=0x2E8A, pid=0x0005, description="CircuitPython Console", manufacturer="Raspberry Pi", hwid="", serial_number="PICO1"),
+            FakePortInfo(device="/dev/ttyACM1", vid=0x2E8A, pid=0x0005, description="CircuitPython CDC Data", manufacturer="Raspberry Pi", hwid="", serial_number="PICO1"),
+        ]
+        with patch("serial.tools.list_ports.comports", return_value=ports):
+            rows = list_serial_ports()
+        self.assertEqual([r["device"] for r in rows], ["/dev/ttyACM1", "/dev/ttyACM0", "/dev/ttyUSB0"])
+        self.assertTrue(rows[0]["is_pico"])
+        self.assertFalse(rows[0]["is_console"])
+        self.assertTrue(rows[1]["is_console"])
+        self.assertFalse(rows[2]["is_pico"])
+
+        sim_dev = PicoSpectroDevice(mode="SIMULATED")
+        with self.assertRaisesRegex(LabError, "CONFIG_INVALID"):
+            sim_dev.set_port("/dev/ttyACM1")
+        sim_dev.set_port("auto")
+        sim_dev.connect()
+        with self.assertRaisesRegex(LabError, "CONFIG_INVALID"):
+            sim_dev.set_port("auto")
+        sim_dev.close()
+
+        phys_dev = PicoSpectroDevice(mode="PHYSICAL", port="auto")
+        phys_dev.set_port("/dev/ttyACM1")
+        self.assertEqual(phys_dev._requested_port, "/dev/ttyACM1")
+        phys_dev.set_port("auto")
+        self.assertIsNone(phys_dev._requested_port)
+
 
 class UniLabPackageContractTests(unittest.TestCase):
+    def test_vendored_pocket_sdl_matches_root_package(self):
+        root_pkg = REPO_ROOT / "pocket_sdl"
+        vendor_pkg = UNILAB_PKG_ROOT / "pocket_sdl_lab" / "_vendor" / "pocket_sdl"
+        root_files = sorted(p.relative_to(root_pkg).as_posix() for p in root_pkg.rglob("*.py"))
+        vendor_files = sorted(p.relative_to(vendor_pkg).as_posix() for p in vendor_pkg.rglob("*.py"))
+        self.assertEqual(vendor_files, root_files)
+        for rel in root_files:
+            self.assertEqual(
+                (vendor_pkg / rel).read_text(encoding="utf-8"),
+                (root_pkg / rel).read_text(encoding="utf-8"),
+                f"vendored 文件与根包不同步: {rel}",
+            )
     def test_unilab_package_ast_and_graphs_contract(self):
         device_file = UNILAB_PKG_ROOT / "pocket_sdl_lab" / "devices" / "pico_spectro.py"
         tree = ast.parse(device_file.read_text(encoding="utf-8"))
@@ -279,10 +320,18 @@ class UniLabPackageContractTests(unittest.TestCase):
         imported_names = {alias.name for alias in imports[0].names}
         self.assertTrue({"device", "action", "not_action", "topic_config"} <= imported_names)
 
-        # 验证类装饰器与所有公开方法装饰器（不允许遗漏产生意外 auto-* 方法，也不允许无参 get_*）
-        classes = [node for node in tree.body if isinstance(node, ast.ClassDef)]
-        self.assertEqual(len(classes), 1)
-        cls_node = classes[0]
+        # 验证 @device 类装饰器与所有公开方法装饰器（忽略 TypedDict 等类型定义类）
+        device_classes = [
+            node for node in tree.body
+            if isinstance(node, ast.ClassDef)
+            and any(
+                (isinstance(dec, ast.Call) and isinstance(dec.func, ast.Name) and dec.func.id == "device")
+                or (isinstance(dec, ast.Name) and dec.id == "device")
+                for dec in node.decorator_list
+            )
+        ]
+        self.assertEqual(len(device_classes), 1)
+        cls_node = device_classes[0]
         self.assertEqual(cls_node.name, "PicoSpectroStation")
 
         init_params = []
@@ -345,7 +394,11 @@ class UniLabPackageContractTests(unittest.TestCase):
                 self.assertEqual(station.mode, "SIMULATED")
                 self.assertEqual(station.port, "")
                 self.assertEqual(station.channels_nm, [415, 445, 480, 515, 555, 590, 630, 680])
-                self.assertTrue(station.connect()["success"])
+                with patch("serial.tools.list_ports.comports", return_value=[]):
+                    listed = station.list_ports()
+                self.assertTrue(listed["success"])
+                self.assertEqual(listed["data"], {"mode": "SIMULATED", "ports": []})
+                self.assertTrue(station.connect(port="auto")["success"])
                 self.assertEqual(station.status, "Idle")
                 res = station.measure(r=0.3, g=0.6, b=0.4)
                 self.assertTrue(res["success"])
