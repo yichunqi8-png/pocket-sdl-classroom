@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from pocket_sdl import LabError
-from pocket_sdl.config import load_config
-from pocket_sdl.simulated import SimDevice
+from pocket_sdl_lab._vendor.pocket_sdl import LabError
+from pocket_sdl_lab._vendor.pocket_sdl.config import load_config
+from pocket_sdl_lab._vendor.pocket_sdl.simulated import SimDevice
 
 from pocket_sdl_lab.devices import PicoSpectroStation
 

@@ -1,0 +1,12 @@
+{
+  "publications": [
+    {
+      "contract_uuid": "24fca804-8c6c-4ada-97d0-6268af79ff9a",
+      "version": 1,
+      "workflow_revision": 2,
+      "workflow_uuid": "aad9d030-d6b7-4183-9681-92efb29fcd51"
+    }
+  ],
+  "storage": "workflow_publications",
+  "version": 2
+}

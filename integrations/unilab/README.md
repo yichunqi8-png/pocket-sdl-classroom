@@ -1,58 +1,93 @@
-# UniLabOS 三色测量拓展（适配本机已验证的 0.12.3 SDK）
+# UniLabOS 三色测量拓展（适配 UniLabOS.app / 1.1 设备包工作区）
 
-普通七任务工作台不依赖UniLabOS。拓展任务需要在装有UniLabOS 0.12.3的Python环境运行；不要在普通学生启动器环境直接执行。
+普通七任务工作台不依赖 UniLabOS。拓展任务需要已安装的 **UniLabOS.app**（dmg）；
+不要在普通学生启动器环境直接执行。
 
-## 安装与启动
+## 目录性质
 
-在解压后的Pocket-SDL-Classroom目录执行（python必须指向UniLabOS环境）：
+`pocket-sdl-lab` 是一个**设备包工作区**，结构对齐 app 自带的 `demo_workspace`：
 
-```sh
-python -m pip install -e .
-python -m pip install -e integrations/unilab/pocket-sdl-lab
-unilab package inspect --path integrations/unilab/pocket-sdl-lab --out dist/unilab
-python integrations/unilab/pocket-sdl-lab/deployment/start.py --mode SIMULATED
+```text
+pocket-sdl-lab/
+├── pyproject.toml          # 包身份 + [tool.unilabos.startup]
+├── package.yaml            # 工作流登记（workflow_uuid + source）
+├── unilab-app.json/.toml   # app 启动契约（schemaVersion 2）
+├── deployment/graphs/      # dry-run.json（SIMULATED）/ production.json（PHYSICAL）
+├── pocket_sdl_lab/
+│   ├── devices/pico_spectro.py
+│   ├── workflows/three_color.py
+│   └── _vendor/pocket_sdl/ # 内置驱动，免装外部 pocket-sdl 包
+└── tests/
 ```
 
-此版本不支持旧说明中的 `unilab package build` 和 `unilab workspace start`。
-启动脚本准备独立community manifest与数据库，管理端口8788、Hostlink端口8789。前端应连接这个后端，而不是其他正在运行的UniLabOS实例。
+app 内嵌 runtime 不可写且不传 `PYTHONPATH`，因此驱动以 vendored 形式随包分发，
+不需要 `pip install pocket-sdl`。
 
-## 保存并执行
-
-在UniLabOS工作流模板中找到“Pocket SDL 三色光谱测量”，绑定到pico_spectro_01，实例化并保存为本组工作流，再执行。
-也可在另一个终端保存：
+## 启动
 
 ```sh
-python integrations/unilab/pocket-sdl-lab/deployment/save_workflow.py --name "第1组三色测量"
-# 加 --run 会立即在当前设备模式下执行，先确认是仿真
-python integrations/unilab/pocket-sdl-lab/deployment/save_workflow.py --name "第1组三色测量" --run
+UNILABOS_WORKSPACE="$PWD/integrations/unilab/pocket-sdl-lab" \
+  /Applications/UniLabOS.app/Contents/MacOS/UniLabOS
 ```
 
-脚本按模板名称查询实际UUID，不依赖本机路径。
+app 的页面没有工作区选择器；不设 `UNILABOS_WORKSPACE` 时它会打开自带的示例工作区。
+**先停掉正在运行的 UniLabOS 再切换**，同一串口不能被两个实例同时占用。
 
-流程：连接并开始记录 → 自检 → 红[1,0,0] → 绿[0,1,0] → 蓝[0,0,1] → 保存读数 → 关灯并断开。
-学生可在画布修改三组RGB；每组分量范围0–1。每次测完默认立即关灯，末尾再执行最终清理。
-文件保存在设备运行主机工作目录下的three-color-data/<独立运行目录>/，不是浏览器下载目录。record.json含模式、设备信息、时间、RGB、原始八通道读数与错误；readings.csv供表格查看。每测一组立即保存，失败不补零。
+## 真机切换
 
-动作报错时会尝试关灯、断开。手动取消调度后请调用finish_three_color；进程被强制结束时软件不能保证执行清理，不能将看门狗视为完成断开。
+`unilab-app.json` 的 `startup.graph` 默认指向 `deployment/graphs/dry-run.json`。
+真机联调前把它改成 `deployment/graphs/production.json`（`mode: "PHYSICAL"`），
+并先关闭普通课程工作台释放串口。
 
-## 明天真机联调
+## 验证（不启动 app）
 
-1. 用普通工作台先确认Pico可以自检和读数，再关闭真机工作台，释放串口。
-2. 普通插USB，不按BOOTSEL。固定遮光和相对位置。
-3. 停止仿真实例，改用 `python integrations/unilab/pocket-sdl-lab/deployment/start.py --mode PHYSICAL`。
-4. 多设备时先在production.json填写serial_number或明确port。
-5. 在UniLabOS确认设备模式PHYSICAL，先调用connect、doctor、stop、disconnect验收。
-6. 保存并执行三色模板，核对3组×8通道、灯依次变化、CSV/JSON标明PHYSICAL、最后灯灭且断开。
-7. 失败时保留日志和部分记录，先查线缆/串口占用/固件，不自动切仿真。
+```sh
+cd integrations/unilab/pocket-sdl-lab
+/Applications/UniLabOS.app/Contents/Resources/os/runtime/bin/python -I -B -c "
+import sys; sys.path.insert(0,'.')
+from unilabos.package_manager import WorkspaceSource, compile_package_source
+c = compile_package_source(WorkspaceSource('.'))
+print([d.id for d in c.definitions.devices], [w.id for w in c.definitions.workflows])
+"
+```
 
-## 不依赖UniLabOS的驱动预检
+期望输出：`['pico_spectro'] ['three_color']`。
+
+## 执行
+
+工作流在 app 启动时由 `package.yaml` 自动注册，不需要再手动实例化模板。
+在控制台打开「Pocket SDL 三色光谱测量」直接运行即可；`port` 留 `auto`。也可在另一个终端：
+
+```sh
+python integrations/unilab/pocket-sdl-lab/deployment/save_workflow.py
+# 加 --run 才会真正下发；--port 可指定具体串口
+```
+
+流程：连接 → 自检 → 三组 RGB 测量 → 关灯 → 断开。三组 RGB 都是工作流入口参数，
+范围 0–1，可直接在参数表单里改（字段已带中文标题）。
+
+**读数去哪了**：每次测量返回 AS7341 八通道原始计数，出现在任务详情的作业结果里，
+设备属性 `last_raw` 也会刷新（保留最后一次）。设备动作**不再写** `three-color-data/`
+目录，也不生成 `readings.csv`——动作保持无状态，避免重试或重启后会话错乱。
+
+断电或进程被强制结束时无法保证断开，固件看门狗会执行关灯；这不是正常结束流程。
+
+## 真机联调顺序
+
+1. 用普通工作台先确认 Pico 可以自检和读数，再关闭真机工作台，释放串口。
+2. 普通插 USB，不按 BOOTSEL。固定遮光和相对位置。
+3. 停掉仿真实例，把 `unilab-app.json` 的 graph 换成 `production.json` 后重启 app。
+4. 多设备时先在 `production.json` 填写 `serial_number` 或明确 `port`。
+5. 在控制台确认设备 `mode` 为 `PHYSICAL`，先调用 `connect`、`doctor`、`stop`、`disconnect` 验收。
+6. 在控制台运行「Pocket SDL 三色光谱测量」，核对 3 组 × 8 通道原始读数、灯依次变化、最后灯灭且断开。
+7. 失败时保留日志和部分记录，先查线缆、串口占用、固件，不自动切仿真。
+
+## 不依赖 UniLabOS 的驱动预检
 
 ```sh
 python -m pocket_sdl.three_color --mode SIMULATED
 # 真机须确认串口未被占用
 python -m pocket_sdl.three_color --mode PHYSICAL
 ```
-这仅验证驱动与记录逻辑，不能代替UniLabOS调度和真机验收。
 
-
-验收记录：本机UniLabOS 0.12.3已成功注册模板、保存工作流并通过Hostlink执行完整七步仿真。真机尚待现场联调。工作流任务ID和本机记录不随公开发布包分发。
+这仅验证驱动与记录逻辑，不能代替 UniLabOS 调度和真机验收。

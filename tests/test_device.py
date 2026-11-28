@@ -279,10 +279,18 @@ class UniLabPackageContractTests(unittest.TestCase):
         imported_names = {alias.name for alias in imports[0].names}
         self.assertTrue({"device", "action", "not_action", "topic_config"} <= imported_names)
 
-        # 验证类装饰器与所有公开方法装饰器（不允许遗漏产生意外 auto-* 方法，也不允许无参 get_*）
-        classes = [node for node in tree.body if isinstance(node, ast.ClassDef)]
-        self.assertEqual(len(classes), 1)
-        cls_node = classes[0]
+        # 验证 @device 类装饰器与所有公开方法装饰器（忽略 TypedDict 等类型定义类）
+        device_classes = [
+            node for node in tree.body
+            if isinstance(node, ast.ClassDef)
+            and any(
+                (isinstance(dec, ast.Call) and isinstance(dec.func, ast.Name) and dec.func.id == "device")
+                or (isinstance(dec, ast.Name) and dec.id == "device")
+                for dec in node.decorator_list
+            )
+        ]
+        self.assertEqual(len(device_classes), 1)
+        cls_node = device_classes[0]
         self.assertEqual(cls_node.name, "PicoSpectroStation")
 
         init_params = []
