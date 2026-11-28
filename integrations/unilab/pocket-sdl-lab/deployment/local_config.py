@@ -18,6 +18,7 @@ class BasicConfig:
 LOG_LEVEL = "INFO"
 AUTO_OPEN_BROWSER = False
 AK = ""
+SK = ""
 
 
 def _arg_value(argv: Sequence[str], flag: str) -> Optional[str]:
@@ -105,4 +106,3 @@ def _reset_stale_inventory_on_graph_switch(
 
 if __name__ == "lab_local_config":
     _reset_stale_inventory_on_graph_switch()
-SK = ""

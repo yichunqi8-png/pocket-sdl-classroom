@@ -2,11 +2,17 @@
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 import pytest
 
 from pocket_sdl_lab._vendor.pocket_sdl import LabError
-from pocket_sdl_lab._vendor.pocket_sdl.config import load_config
+from pocket_sdl_lab._vendor.pocket_sdl.config import (
+    expected_device_base,
+    expected_device_fingerprint,
+    load_config,
+)
 from pocket_sdl_lab._vendor.pocket_sdl.simulated import SimDevice
 
 from pocket_sdl_lab.devices import PicoSpectroStation
@@ -102,3 +108,108 @@ def test_graphs_match_device_class_and_init_params():
         station = PicoSpectroStation(**node["config"])
         assert station.status == "Offline"
         assert station.connected is False
+
+
+def test_list_ports_and_connect_port_switching():
+    ports = [
+        SimpleNamespace(
+            device="/dev/cu.Bluetooth-Incoming-Port",
+            description="Bluetooth",
+            manufacturer=None,
+            serial_number=None,
+            vid=None,
+            pid=None,
+            hwid="",
+        ),
+        SimpleNamespace(
+            device="/dev/cu.usbmodem101",
+            description="Pico CircuitPython Console",
+            manufacturer="Raspberry Pi",
+            serial_number="SN-1",
+            vid=0x2E8A,
+            pid=0x0005,
+            hwid="USB VID:PID=2E8A:0005",
+        ),
+        SimpleNamespace(
+            device="/dev/cu.usbmodem103",
+            description="Pico CircuitPython Data",
+            manufacturer="Raspberry Pi",
+            serial_number="SN-1",
+            vid=0x2E8A,
+            pid=0x0005,
+            hwid="USB VID:PID=2E8A:0005",
+        ),
+    ]
+    station = PicoSpectroStation(mode="SIMULATED")
+    with patch("serial.tools.list_ports.comports", return_value=ports):
+        res = station.list_ports()
+    assert res["success"] is True
+    assert res["data"]["mode"] == "SIMULATED"
+    assert [row["device"] for row in res["data"]["ports"]] == [
+        "/dev/cu.usbmodem103",
+        "/dev/cu.usbmodem101",
+        "/dev/cu.Bluetooth-Incoming-Port",
+    ]
+    assert res["data"]["ports"][0]["is_pico"] is True
+    assert res["data"]["ports"][0]["is_console"] is False
+    assert res["data"]["ports"][1]["is_console"] is True
+
+    # SIMULATED 模式禁止指定物理串口
+    with pytest.raises(LabError, match="CONFIG_INVALID"):
+        station.connect(port="/dev/cu.usbmodem103")
+
+    # PHYSICAL 模式：显式覆盖串口后断开，再传 auto 可恢复自动探测；已连接时切换报错
+    phys_auto = PicoSpectroStation(mode="PHYSICAL", port="auto")
+    opened = []
+    discovered = []
+
+    class StubPhysicalDevice:
+        def __init__(self, config, port_name):
+            self.port_name = str(port_name)
+            self.closed = False
+            info = expected_device_base(config)
+            info.update(
+                device_fingerprint=expected_device_fingerprint(config),
+                firmware_version="pico-h-sdl-1.0.0",
+            )
+            self.device_info = info
+
+        def off(self):
+            return True
+
+        def close(self):
+            self.closed = True
+
+    def fake_open(config, port=None, **kwargs):
+        opened.append(port)
+        return StubPhysicalDevice(config, port)
+
+    def fake_discover(config, serial_number=None, probe_timeout=1.5):
+        discovered.append((serial_number, probe_timeout))
+        return "/dev/cu.usbmodemAUTO", StubPhysicalDevice(config, "/dev/cu.usbmodemAUTO")
+
+    with (
+        patch("pocket_sdl_lab._vendor.pocket_sdl.device.open_device", side_effect=fake_open),
+        patch("pocket_sdl_lab._vendor.pocket_sdl.device.discover_pico_port", side_effect=fake_discover),
+    ):
+        assert phys_auto.connect(port="/dev/cu.usbmodem103")["success"] is True
+        assert phys_auto.port == "/dev/cu.usbmodem103"
+        # 已连接时再次调用无参 / auto 幂等成功，切换具体串口则报错
+        assert phys_auto.connect(port="auto")["success"] is True
+        with pytest.raises(LabError, match="CONFIG_INVALID"):
+            phys_auto.connect(port="/dev/cu.usbmodem999")
+        phys_auto.disconnect()
+
+        # 断开后再用 auto 应回到自动探测，而不是卡在旧串口
+        assert phys_auto.connect(port="auto")["success"] is True
+        assert phys_auto.port == "/dev/cu.usbmodemAUTO"
+        phys_auto.disconnect()
+
+        # 图配置固定串口时，默认 auto 工作流应沿用图配置的固定串口
+        phys_pinned = PicoSpectroStation(mode="PHYSICAL", port="/dev/cu.usbmodemPIN")
+        assert phys_pinned.connect(port="auto")["success"] is True
+        assert phys_pinned.port == "/dev/cu.usbmodemPIN"
+        phys_pinned.disconnect()
+
+    assert opened == ["/dev/cu.usbmodem103", "/dev/cu.usbmodemPIN"]
+    assert len(discovered) == 1

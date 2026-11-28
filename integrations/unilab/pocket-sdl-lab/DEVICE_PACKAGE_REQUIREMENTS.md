@@ -3,7 +3,7 @@
 ## 1. 设备信息
 - **设备类型 ID**：`pico_spectro`（完整类型名 `community.pocket_sdl_lab.pico_spectro`）
 - **硬件组成**：Raspberry Pi Pico H (RP2040) + AS7341 8 通道光谱传感器（I²C `0x39`，`F1–F8 = [415, 445, 480, 515, 555, 590, 630, 680] nm`）+ WS2812B 单灯模块（GP28）
-- **底层驱动包**：`pocket-sdl`（`pocket_sdl.device.PicoSpectroDevice`）
+- **底层驱动包**：内置 vendored `pocket_sdl`（`pocket_sdl_lab._vendor.pocket_sdl.device.PicoSpectroDevice`，与根包 `pocket-sdl` 同步）
 
 ## 2. 通信方式
 - **物理接口**：USB CDC 独立 data 串口（`115200` baud，跳过 REPL Console 口），逐行 JSON 协议（含请求 `id` 与总超时控制）
@@ -13,7 +13,8 @@
 ## 3. 动作与参数范围
 | 动作 | 参数与单位 / 允许范围 | 返回 |
 | --- | --- | --- |
-| `connect` | 无 | `success`, `message`, `data`（含 `device_info` 与配置指纹） |
+| `list_ports` | 无（只读枚举本机串口，不打开串口） | `success`, `message`, `data`（含 `mode` 与排序后的 `ports` 列表） |
+| `connect` | `port` 可选（留空或 `auto` 自动探测；`PHYSICAL` 模式可指定具体串口，切换前须先断开） | `success`, `message`, `data`（含 `device_info` 与配置指纹） |
 | `disconnect` | 无（故障态可调） | `success`, `message`, `data` |
 | `stop` | 无（故障态可调，立即关灯） | `success`, `message`, `data` |
 | `reset` | 无（故障态可调，重连握手清错） | `success`, `message`, `data` |
@@ -36,6 +37,6 @@
 - 故障态下阻塞常规 `measure` / `calibrate` / `doctor`，仅允许 `stop` / `reset` / `disconnect`。
 
 ## 6. 验收要求
-- 通过依赖检查、静态 `unilab package inspect`、构建 `unilab package build` 及 `dry-run` 启动验证。
-- 覆盖正常、超时、饱和故障及 `stop` / `reset` 恢复单元测试。
-- 切换到 `normal` 运行真机前，先在 `production.json` 上完成 `connect -> doctor -> stop` 实机验收。
+- 通过 `WorkspaceSource` / `compile_package_source` 静态工作区与工作流契约校验，以及 `dry-run.json` 仿真启动验证。
+- 覆盖正常、超时、饱和故障、`stop` / `reset` 恢复、串口枚举/切换与跨图 `inventory.db` 清理单元测试。
+- 切换到 `production.json` 运行真机前，先完成 `connect -> doctor -> stop -> disconnect` 实机验收。

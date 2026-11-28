@@ -196,6 +196,8 @@ class PicoSpectroStation:
 
         if port not in (None, "", "auto"):
             self._driver.set_port(port)
+        elif not self._driver.connected:
+            self._driver.set_port(self._port_param)
         return self._driver.connect()
 
     @action(displayname="断开设备", description="安全关闭 LED 并断开设备连接；故障态下仍可调用。")
