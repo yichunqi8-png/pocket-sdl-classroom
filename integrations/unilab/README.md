@@ -37,7 +37,8 @@ app 的页面没有工作区选择器；不设 `UNILABOS_WORKSPACE` 时它会打
 
 `unilab-app.json` 的 `startup.graph` 默认指向 `deployment/graphs/dry-run.json`。
 真机联调前把它改成 `deployment/graphs/production.json`（`mode: "PHYSICAL"`），
-并先关闭普通课程工作台释放串口。
+并先关闭普通课程工作台释放串口。下次启动时，`deployment/local_config.py` 会自动检测
+仿真/真机图切换并清理旧 `inventory.db`（保留 `workflow_history.db`），避免资源图指纹冲突。
 
 ## 验证（不启动 app）
 
